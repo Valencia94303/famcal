@@ -9,8 +9,9 @@ interface Photo {
 }
 
 interface PhotoScreensaverProps {
-  children: ReactNode;
+  children?: ReactNode;
   photoInterval: number; // seconds
+  showMiniDashboard?: boolean; // Whether to show mini dashboard in corner
 }
 
 // Ken Burns effect configurations
@@ -31,7 +32,7 @@ const CORNERS = [
   { position: "bottom-4 right-4", origin: "bottom right" },
 ];
 
-export function PhotoScreensaver({ children, photoInterval }: PhotoScreensaverProps) {
+export function PhotoScreensaver({ children, photoInterval, showMiniDashboard = true }: PhotoScreensaverProps) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentEffect, setCurrentEffect] = useState(0);
@@ -72,9 +73,9 @@ export function PhotoScreensaver({ children, photoInterval }: PhotoScreensaverPr
     return () => clearInterval(timer);
   }, [isLoaded, photos.length, photoInterval, nextPhoto]);
 
-  // If no photos, just render children normally
+  // If no photos, render children or nothing
   if (!isLoaded || photos.length === 0) {
-    return <>{children}</>;
+    return children ? <>{children}</> : null;
   }
 
   const currentPhoto = photos[currentIndex];
@@ -117,36 +118,38 @@ export function PhotoScreensaver({ children, photoInterval }: PhotoScreensaverPr
       {/* Gradient overlay for better readability */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20 pointer-events-none" />
 
-      {/* Mini dashboard in corner */}
-      <motion.div
-        className={`absolute ${corner.position} z-10`}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.5, duration: 0.5 }}
-        style={{
-          transformOrigin: corner.origin,
-        }}
-      >
-        <div
-          className="backdrop-blur-xl bg-black/50 rounded-3xl shadow-2xl overflow-hidden"
+      {/* Mini dashboard in corner (optional) */}
+      {showMiniDashboard && children && (
+        <motion.div
+          className={`absolute ${corner.position} z-10`}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
           style={{
-            width: "40vw",
-            height: "40vh",
+            transformOrigin: corner.origin,
           }}
         >
           <div
-            className="pointer-events-none [&>div]:!bg-none [&_.absolute]:!opacity-0"
+            className="backdrop-blur-xl bg-black/50 rounded-3xl shadow-2xl overflow-hidden"
             style={{
-              transform: "scale(0.4)",
-              transformOrigin: "top left",
-              width: "100vw",
-              height: "100vh",
+              width: "40vw",
+              height: "40vh",
             }}
           >
-            {children}
+            <div
+              className="pointer-events-none [&>div]:!bg-none [&_.absolute]:!opacity-0"
+              style={{
+                transform: "scale(0.4)",
+                transformOrigin: "top left",
+                width: "100vw",
+                height: "100vh",
+              }}
+            >
+              {children}
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
 
       {/* Photo progress indicator */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">

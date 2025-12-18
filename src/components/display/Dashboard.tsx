@@ -28,12 +28,10 @@ export function Dashboard() {
   const [headerAlternateInterval, setHeaderAlternateInterval] = useState(30);
   const [showClock, setShowClock] = useState(true);
 
-  // Screensaver settings
-  const [screensaverEnabled, setScreensaverEnabled] = useState(false);
-  const [screensaverStartHour, setScreensaverStartHour] = useState(18);
-  const [screensaverEndHour, setScreensaverEndHour] = useState(23);
-  const [screensaverInterval, setScreensaverInterval] = useState(15);
-  const [isScreensaverActive, setIsScreensaverActive] = useState(false);
+  // Photo display settings (photos are now the default view)
+  const [photoModeEnabled, setPhotoModeEnabled] = useState(false);
+  const [photoInterval, setPhotoInterval] = useState(15);
+  const [showDashboard, setShowDashboard] = useState(true); // Show dashboard during interruptions
 
   // Cycle through presets every 5 minutes when "cycle" is selected
   useEffect(() => {
@@ -71,18 +69,12 @@ export function Dashboard() {
         if (data.settings?.headerAlternateInterval) {
           setHeaderAlternateInterval(data.settings.headerAlternateInterval);
         }
-        // Screensaver settings
+        // Photo mode settings
         if (data.settings?.screensaverEnabled !== undefined) {
-          setScreensaverEnabled(data.settings.screensaverEnabled);
-        }
-        if (data.settings?.screensaverStartHour !== undefined) {
-          setScreensaverStartHour(data.settings.screensaverStartHour);
-        }
-        if (data.settings?.screensaverEndHour !== undefined) {
-          setScreensaverEndHour(data.settings.screensaverEndHour);
+          setPhotoModeEnabled(data.settings.screensaverEnabled);
         }
         if (data.settings?.screensaverInterval !== undefined) {
-          setScreensaverInterval(data.settings.screensaverInterval);
+          setPhotoInterval(data.settings.screensaverInterval);
         }
       } catch (error) {
         console.error("Error fetching settings:", error);
@@ -110,31 +102,36 @@ export function Dashboard() {
     return () => clearInterval(timer);
   }, [headerMode, headerAlternateInterval]);
 
-  // Check if screensaver should be active
-  const checkScreensaverActive = useCallback(() => {
-    if (!screensaverEnabled) {
-      setIsScreensaverActive(false);
+  // Check if dashboard should show (interruption mode)
+  // Dashboard shows at :25-:29 and :55-:59 between 6 AM and midnight
+  // Photos show at all other times when photo mode is enabled
+  const checkDisplayMode = useCallback(() => {
+    if (!photoModeEnabled) {
+      setShowDashboard(true);
       return;
     }
 
-    const currentHour = new Date().getHours();
+    const now = new Date();
+    const hour = now.getHours();
+    const minute = now.getMinutes();
 
-    // Handle time ranges that span midnight
-    if (screensaverStartHour <= screensaverEndHour) {
-      // Normal range (e.g., 18-23)
-      setIsScreensaverActive(currentHour >= screensaverStartHour && currentHour < screensaverEndHour);
-    } else {
-      // Spans midnight (e.g., 22-6)
-      setIsScreensaverActive(currentHour >= screensaverStartHour || currentHour < screensaverEndHour);
-    }
-  }, [screensaverEnabled, screensaverStartHour, screensaverEndHour]);
+    // Dashboard hours: 6 AM (6) to midnight (0), so hour >= 6
+    const isDashboardHours = hour >= 6;
 
-  // Check screensaver status on settings change and every minute
+    // Dashboard shows 5 minutes before each half-hour: :25-:29 and :55-:59
+    const isDashboardMinutes = (minute >= 25 && minute <= 29) || (minute >= 55 && minute <= 59);
+
+    // Show dashboard only during dashboard hours AND dashboard minutes
+    // Otherwise show photos
+    setShowDashboard(isDashboardHours && isDashboardMinutes);
+  }, [photoModeEnabled]);
+
+  // Check display mode every 30 seconds for responsive switching
   useEffect(() => {
-    checkScreensaverActive();
-    const timer = setInterval(checkScreensaverActive, 60000);
+    checkDisplayMode();
+    const timer = setInterval(checkDisplayMode, 30000);
     return () => clearInterval(timer);
-  }, [checkScreensaverActive]);
+  }, [checkDisplayMode]);
 
   // Update theme when time changes
   useEffect(() => {
@@ -267,10 +264,10 @@ export function Dashboard() {
     </DynamicBackground>
   );
 
-  // Wrap in screensaver if active
-  if (isScreensaverActive) {
+  // Photo mode: show photos with mini dashboard, full dashboard during interruptions
+  if (photoModeEnabled && !showDashboard) {
     return (
-      <PhotoScreensaver photoInterval={screensaverInterval}>
+      <PhotoScreensaver photoInterval={photoInterval}>
         {dashboardContent}
       </PhotoScreensaver>
     );

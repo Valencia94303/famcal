@@ -8,6 +8,9 @@ interface ClockProps {
   className?: string;
 }
 
+// Light color with strong shadow for visibility on any background
+const CLOCK_COLOR = "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]";
+
 export function Clock({ className = "" }: ClockProps) {
   const [time, setTime] = useState(new Date());
 
@@ -25,7 +28,7 @@ export function Clock({ className = "" }: ClockProps) {
   const dateStr = format(time, "EEEE, MMMM d");
 
   return (
-    <div className={`flex flex-col ${className}`}>
+    <div className={`flex flex-col ${CLOCK_COLOR} ${className}`}>
       <motion.div
         className="flex items-baseline gap-2"
         initial={{ opacity: 0, y: -20 }}

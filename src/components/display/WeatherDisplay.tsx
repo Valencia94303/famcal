@@ -42,6 +42,19 @@ const WEATHER_ICONS_NIGHT: Record<string, string> = {
   "cloud-lightning": "⛈️",
 };
 
+// Temperature colormap: blue (cold) → cyan → green → yellow → orange → red (hot)
+function getTempColor(temp: number): string {
+  // Define temperature ranges and colors (Fahrenheit)
+  if (temp <= 20) return "#3B82F6"; // Blue - freezing
+  if (temp <= 32) return "#06B6D4"; // Cyan - very cold
+  if (temp <= 50) return "#22D3EE"; // Light cyan - cold
+  if (temp <= 60) return "#10B981"; // Green - cool
+  if (temp <= 70) return "#84CC16"; // Lime - comfortable
+  if (temp <= 80) return "#EAB308"; // Yellow - warm
+  if (temp <= 90) return "#F97316"; // Orange - hot
+  return "#EF4444"; // Red - very hot
+}
+
 export function WeatherDisplay({ className = "" }: WeatherDisplayProps) {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -72,7 +85,7 @@ export function WeatherDisplay({ className = "" }: WeatherDisplayProps) {
 
   if (error) {
     return (
-      <div className={`flex flex-col ${className}`}>
+      <div className={`flex flex-col text-gray-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${className}`}>
         <motion.div
           className="flex items-baseline gap-4"
           initial={{ opacity: 0, y: -20 }}
@@ -97,7 +110,7 @@ export function WeatherDisplay({ className = "" }: WeatherDisplayProps) {
 
   if (!weather) {
     return (
-      <div className={`flex flex-col ${className}`}>
+      <div className={`flex flex-col text-gray-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${className}`}>
         <motion.div
           className="flex items-baseline gap-4"
           initial={{ opacity: 0 }}
@@ -114,9 +127,12 @@ export function WeatherDisplay({ className = "" }: WeatherDisplayProps) {
 
   const icons = weather.isDay ? WEATHER_ICONS : WEATHER_ICONS_NIGHT;
   const weatherIcon = icons[weather.icon] || "🌡️";
+  const tempColor = getTempColor(weather.temp);
+  const highColor = getTempColor(weather.high);
+  const lowColor = getTempColor(weather.low);
 
   return (
-    <div className={`flex flex-col ${className}`}>
+    <div className={`flex flex-col drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${className}`}>
       <motion.div
         className="flex items-center gap-4"
         initial={{ opacity: 0, y: -20 }}
@@ -131,23 +147,26 @@ export function WeatherDisplay({ className = "" }: WeatherDisplayProps) {
           {weatherIcon}
         </motion.span>
         <div className="flex items-baseline">
-          <span className="text-[12vw] font-bold leading-none tracking-tight">
+          <span
+            className="text-[12vw] font-bold leading-none tracking-tight"
+            style={{ color: tempColor }}
+          >
             {weather.temp}
           </span>
-          <span className="text-[4vw] font-semibold opacity-70">°F</span>
+          <span className="text-[4vw] font-semibold text-gray-300">°F</span>
         </div>
       </motion.div>
       <motion.div
-        className="flex items-center gap-4 mt-2"
+        className="flex items-center gap-4 mt-2 text-gray-300"
         initial={{ opacity: 0 }}
-        animate={{ opacity: 0.8 }}
+        animate={{ opacity: 0.9 }}
         transition={{ delay: 0.3, duration: 0.6 }}
       >
         <p className="text-[2.5vw] font-medium">
           {weather.condition}
         </p>
-        <span className="text-[2vw] font-medium opacity-60">
-          H: {weather.high}° L: {weather.low}°
+        <span className="text-[2vw] font-medium">
+          H: <span style={{ color: highColor }}>{weather.high}°</span> L: <span style={{ color: lowColor }}>{weather.low}°</span>
         </span>
       </motion.div>
     </div>
