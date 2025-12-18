@@ -175,6 +175,19 @@ model Settings {
   carouselInterval Int      @default(30) // Seconds between widget rotations
   carouselAnimation String  @default("arrivingTogether") // Animation preset
 
+  // Weather & Header Display settings
+  headerMode              String   @default("clock")     // "clock", "weather", "alternate"
+  headerAlternateInterval Int      @default(30)          // seconds between switches
+  weatherLat              Float?                         // latitude for weather
+  weatherLon              Float?                         // longitude for weather
+
+  // Photo Screensaver settings
+  screensaverEnabled    Boolean  @default(false)
+  screensaverStartHour  Int      @default(18)           // 6 PM
+  screensaverEndHour    Int      @default(23)           // 11 PM
+  screensaverPhotoPath  String   @default("/home/pi/famcal-photos")
+  screensaverInterval   Int      @default(15)           // seconds per photo
+
   updatedAt DateTime @updatedAt
 }
 

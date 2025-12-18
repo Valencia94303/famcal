@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { getThemeForTime, getNextThemeChange, Theme } from "@/lib/theme";
 import { DynamicBackground } from "./DynamicBackground";
 import { Clock } from "./Clock";
+import { WeatherDisplay } from "./WeatherDisplay";
 import { CalendarDisplay } from "./CalendarDisplay";
 import { ChoreBoard } from "./ChoreBoard";
 import { PointsDisplay } from "./PointsDisplay";
@@ -14,12 +15,25 @@ import { HabitsDisplay } from "./HabitsDisplay";
 import { ScheduleDisplay } from "./ScheduleDisplay";
 import { MealPlanDisplay } from "./MealPlanDisplay";
 import { WidgetCarousel, AnimationPreset, ANIMATION_PRESETS } from "./WidgetCarousel";
+import { PhotoScreensaver } from "./PhotoScreensaver";
 
 export function Dashboard() {
   const [theme, setTheme] = useState<Theme>(getThemeForTime());
   const [carouselInterval, setCarouselInterval] = useState(30000); // Default 30s
   const [animationPreset, setAnimationPreset] = useState<AnimationPreset>("arrivingTogether");
   const [cycleIndex, setCycleIndex] = useState(0);
+
+  // Header display settings
+  const [headerMode, setHeaderMode] = useState<"clock" | "weather" | "alternate">("clock");
+  const [headerAlternateInterval, setHeaderAlternateInterval] = useState(30);
+  const [showClock, setShowClock] = useState(true);
+
+  // Screensaver settings
+  const [screensaverEnabled, setScreensaverEnabled] = useState(false);
+  const [screensaverStartHour, setScreensaverStartHour] = useState(18);
+  const [screensaverEndHour, setScreensaverEndHour] = useState(23);
+  const [screensaverInterval, setScreensaverInterval] = useState(15);
+  const [isScreensaverActive, setIsScreensaverActive] = useState(false);
 
   // Cycle through presets every 5 minutes when "cycle" is selected
   useEffect(() => {
@@ -50,6 +64,26 @@ export function Dashboard() {
         if (data.settings?.carouselAnimation) {
           setAnimationPreset(data.settings.carouselAnimation as AnimationPreset);
         }
+        // Header mode settings
+        if (data.settings?.headerMode) {
+          setHeaderMode(data.settings.headerMode);
+        }
+        if (data.settings?.headerAlternateInterval) {
+          setHeaderAlternateInterval(data.settings.headerAlternateInterval);
+        }
+        // Screensaver settings
+        if (data.settings?.screensaverEnabled !== undefined) {
+          setScreensaverEnabled(data.settings.screensaverEnabled);
+        }
+        if (data.settings?.screensaverStartHour !== undefined) {
+          setScreensaverStartHour(data.settings.screensaverStartHour);
+        }
+        if (data.settings?.screensaverEndHour !== undefined) {
+          setScreensaverEndHour(data.settings.screensaverEndHour);
+        }
+        if (data.settings?.screensaverInterval !== undefined) {
+          setScreensaverInterval(data.settings.screensaverInterval);
+        }
       } catch (error) {
         console.error("Error fetching settings:", error);
       }
@@ -60,6 +94,47 @@ export function Dashboard() {
     const interval = setInterval(fetchSettings, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Handle header mode alternation
+  useEffect(() => {
+    if (headerMode !== "alternate") {
+      setShowClock(headerMode === "clock");
+      return;
+    }
+
+    // Alternate between clock and weather
+    const timer = setInterval(() => {
+      setShowClock((prev) => !prev);
+    }, headerAlternateInterval * 1000);
+
+    return () => clearInterval(timer);
+  }, [headerMode, headerAlternateInterval]);
+
+  // Check if screensaver should be active
+  const checkScreensaverActive = useCallback(() => {
+    if (!screensaverEnabled) {
+      setIsScreensaverActive(false);
+      return;
+    }
+
+    const currentHour = new Date().getHours();
+
+    // Handle time ranges that span midnight
+    if (screensaverStartHour <= screensaverEndHour) {
+      // Normal range (e.g., 18-23)
+      setIsScreensaverActive(currentHour >= screensaverStartHour && currentHour < screensaverEndHour);
+    } else {
+      // Spans midnight (e.g., 22-6)
+      setIsScreensaverActive(currentHour >= screensaverStartHour || currentHour < screensaverEndHour);
+    }
+  }, [screensaverEnabled, screensaverStartHour, screensaverEndHour]);
+
+  // Check screensaver status on settings change and every minute
+  useEffect(() => {
+    checkScreensaverActive();
+    const timer = setInterval(checkScreensaverActive, 60000);
+    return () => clearInterval(timer);
+  }, [checkScreensaverActive]);
 
   // Update theme when time changes
   useEffect(() => {
@@ -131,17 +206,40 @@ export function Dashboard() {
     [theme]
   );
 
-  return (
+  // Main dashboard content
+  const dashboardContent = (
     <DynamicBackground theme={theme}>
       <div className="min-h-screen p-8 lg:p-12 flex flex-col">
-        {/* Header with Clock */}
+        {/* Header with Clock or Weather */}
         <motion.header
           className="mb-8 lg:mb-12"
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <Clock className={theme.textPrimary} />
+          <AnimatePresence mode="wait">
+            {showClock ? (
+              <motion.div
+                key="clock"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.5 }}
+              >
+                <Clock className={theme.textPrimary} />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="weather"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.5 }}
+              >
+                <WeatherDisplay className={theme.textPrimary} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.header>
 
         {/* Widget Carousel */}
@@ -168,4 +266,15 @@ export function Dashboard() {
       </div>
     </DynamicBackground>
   );
+
+  // Wrap in screensaver if active
+  if (isScreensaverActive) {
+    return (
+      <PhotoScreensaver photoInterval={screensaverInterval}>
+        {dashboardContent}
+      </PhotoScreensaver>
+    );
+  }
+
+  return dashboardContent;
 }

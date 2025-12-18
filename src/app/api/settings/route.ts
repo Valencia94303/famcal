@@ -29,7 +29,23 @@ export async function GET() {
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
-    const { carouselInterval, carouselAnimation, displayName, theme } = body;
+    const {
+      carouselInterval,
+      carouselAnimation,
+      displayName,
+      theme,
+      // Weather & Header settings
+      headerMode,
+      headerAlternateInterval,
+      weatherLat,
+      weatherLon,
+      // Screensaver settings
+      screensaverEnabled,
+      screensaverStartHour,
+      screensaverEndHour,
+      screensaverPhotoPath,
+      screensaverInterval,
+    } = body;
 
     const settings = await prisma.settings.upsert({
       where: { id: "singleton" },
@@ -38,6 +54,17 @@ export async function PUT(request: Request) {
         ...(carouselAnimation !== undefined && { carouselAnimation }),
         ...(displayName !== undefined && { displayName }),
         ...(theme !== undefined && { theme }),
+        // Weather & Header settings
+        ...(headerMode !== undefined && { headerMode }),
+        ...(headerAlternateInterval !== undefined && { headerAlternateInterval }),
+        ...(weatherLat !== undefined && { weatherLat }),
+        ...(weatherLon !== undefined && { weatherLon }),
+        // Screensaver settings
+        ...(screensaverEnabled !== undefined && { screensaverEnabled }),
+        ...(screensaverStartHour !== undefined && { screensaverStartHour }),
+        ...(screensaverEndHour !== undefined && { screensaverEndHour }),
+        ...(screensaverPhotoPath !== undefined && { screensaverPhotoPath }),
+        ...(screensaverInterval !== undefined && { screensaverInterval }),
       },
       create: {
         id: "singleton",
@@ -45,6 +72,15 @@ export async function PUT(request: Request) {
         carouselAnimation: carouselAnimation ?? "arrivingTogether",
         displayName: displayName ?? "Family Dashboard",
         theme: theme ?? "auto",
+        headerMode: headerMode ?? "clock",
+        headerAlternateInterval: headerAlternateInterval ?? 30,
+        weatherLat: weatherLat ?? null,
+        weatherLon: weatherLon ?? null,
+        screensaverEnabled: screensaverEnabled ?? false,
+        screensaverStartHour: screensaverStartHour ?? 18,
+        screensaverEndHour: screensaverEndHour ?? 23,
+        screensaverPhotoPath: screensaverPhotoPath ?? "/home/pi/famcal-photos",
+        screensaverInterval: screensaverInterval ?? 15,
       },
     });
 
