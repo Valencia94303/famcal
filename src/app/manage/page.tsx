@@ -250,7 +250,7 @@ export default function ManagePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 pb-32 overflow-y-auto">
+    <div className="fixed inset-0 bg-gradient-to-br from-slate-100 to-slate-200 overflow-y-auto pb-32">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-slate-200 px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
