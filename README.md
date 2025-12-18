@@ -1,36 +1,118 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FamCal - Family Dashboard
 
-## Getting Started
+A beautiful, animated family dashboard designed for always-on displays like TVs or tablets. Built with Next.js 15 and optimized for Raspberry Pi deployment.
 
-First, run the development server:
+![FamCal Dashboard](docs/images/dashboard-preview.png)
 
+## Features
+
+- **Dynamic Photo Mode** - Ken Burns effect slideshow with mini dashboard overlay
+- **Animated Widget Carousel** - 14 playful animation styles for widget transitions
+- **Weather Display** - Real-time weather with temperature-based color coding
+- **Family Management** - Track family members, assign chores, manage points
+- **Habit Tracking** - Daily habits with point rewards for kids
+- **Task Management** - Quick tasks with priority and due dates
+- **Shopping Lists** - Organized by store (Costco, Walmart, Target, etc.)
+- **Daily Schedule** - Time-based routine display
+- **Points & Rewards** - Gamified chore system with redeemable rewards
+- **Theme System** - Auto-adjusting colors based on time of day
+
+## Quick Start
+
+### For Home Users
+
+See the [Raspberry Pi Deployment Guide](docs/DEPLOYMENT.md) for complete setup instructions.
+
+**Quick Install:**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# On your Raspberry Pi 5
+git clone https://github.com/Valencia94303/famcal.git
+cd famcal
+npm install
+npm run build
+sudo ./scripts/setup-autostart.sh
+sudo ./scripts/setup-kiosk.sh
+sudo reboot
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### For Developers
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+git clone https://github.com/Valencia94303/famcal.git
+cd famcal
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open [http://localhost:3000](http://localhost:3000) for the dashboard and [http://localhost:3000/manage](http://localhost:3000/manage) for the admin panel.
 
-## Learn More
+## Documentation
 
-To learn more about Next.js, take a look at the following resources:
+| Document | Description |
+|----------|-------------|
+| [Deployment Guide](docs/DEPLOYMENT.md) | Step-by-step Raspberry Pi 5 setup |
+| [Architecture](docs/ARCHITECTURE.md) | Technical architecture and system design |
+| [Configuration](docs/CONFIGURATION.md) | Settings and customization options |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## System Requirements
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Recommended Hardware
+- **Raspberry Pi 5** (4GB+ RAM recommended)
+- MicroSD card (32GB+ recommended)
+- HDMI display (TV, monitor, or tablet)
+- Stable internet connection (for weather data)
 
-## Deploy on Vercel
+### Software Requirements
+- Raspberry Pi OS (64-bit recommended)
+- Node.js 18+
+- npm 9+
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Architecture Overview
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      FamCal Dashboard                       │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
+│  │   Display   │  │   Admin     │  │     API Layer       │  │
+│  │  (Next.js)  │  │   Panel     │  │   (API Routes)      │  │
+│  │             │  │  /manage    │  │                     │  │
+│  └──────┬──────┘  └──────┬──────┘  └──────────┬──────────┘  │
+│         │                │                     │             │
+│         └────────────────┼─────────────────────┘             │
+│                          │                                   │
+│                   ┌──────┴──────┐                            │
+│                   │   Prisma    │                            │
+│                   │    ORM      │                            │
+│                   └──────┬──────┘                            │
+│                          │                                   │
+│                   ┌──────┴──────┐                            │
+│                   │   SQLite    │                            │
+│                   │  Database   │                            │
+│                   └─────────────┘                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Screenshots
+
+### Dashboard View
+The main display showing clock/weather, animated widget carousel, and dynamic backgrounds.
+
+### Photo Mode
+Full-screen photo slideshow with Ken Burns effect and mini dashboard overlay.
+
+### Admin Panel
+Mobile-friendly management interface for family, chores, rewards, and settings.
+
+## License
+
+MIT License - Feel free to use and modify for your family!
+
+## Support
+
+- [Open an Issue](https://github.com/Valencia94303/famcal/issues) for bugs or feature requests
+- Pull requests welcome!
+
+---
+
+Built with Next.js, Prisma, Framer Motion, and Tailwind CSS.
