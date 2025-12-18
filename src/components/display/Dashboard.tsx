@@ -8,11 +8,30 @@ import { Clock } from "./Clock";
 import { CalendarDisplay } from "./CalendarDisplay";
 import { ChoreBoard } from "./ChoreBoard";
 import { PointsDisplay } from "./PointsDisplay";
-import { WidgetCarousel } from "./WidgetCarousel";
+import { WidgetCarousel, AnimationPreset, ANIMATION_PRESETS } from "./WidgetCarousel";
 
 export function Dashboard() {
   const [theme, setTheme] = useState<Theme>(getThemeForTime());
   const [carouselInterval, setCarouselInterval] = useState(30000); // Default 30s
+  const [animationPreset, setAnimationPreset] = useState<AnimationPreset>("arrivingTogether");
+  const [cycleIndex, setCycleIndex] = useState(0);
+
+  // Cycle through presets every 5 minutes when "cycle" is selected
+  useEffect(() => {
+    if (animationPreset !== "cycle") return;
+
+    const cycleInterval = setInterval(() => {
+      setCycleIndex((prev) => (prev + 1) % ANIMATION_PRESETS.length);
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(cycleInterval);
+  }, [animationPreset]);
+
+  // Get the active preset (handles cycling)
+  const activePreset: Exclude<AnimationPreset, "cycle"> =
+    animationPreset === "cycle"
+      ? ANIMATION_PRESETS[cycleIndex]
+      : (animationPreset as Exclude<AnimationPreset, "cycle">);
 
   // Fetch settings
   useEffect(() => {
@@ -22,6 +41,9 @@ export function Dashboard() {
         const data = await res.json();
         if (data.settings?.carouselInterval) {
           setCarouselInterval(data.settings.carouselInterval * 1000); // Convert to ms
+        }
+        if (data.settings?.carouselAnimation) {
+          setAnimationPreset(data.settings.carouselAnimation as AnimationPreset);
         }
       } catch (error) {
         console.error("Error fetching settings:", error);
@@ -99,6 +121,7 @@ export function Dashboard() {
               widgets={widgets}
               theme={theme}
               rotationInterval={carouselInterval}
+              animationPreset={activePreset}
             />
           </div>
         </div>

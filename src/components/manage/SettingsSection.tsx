@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 
 interface Settings {
   carouselInterval: number;
+  carouselAnimation: string;
   displayName: string;
   theme: string;
 }
@@ -16,6 +17,7 @@ export function SettingsSection() {
 
   // Form state
   const [carouselInterval, setCarouselInterval] = useState(30);
+  const [carouselAnimation, setCarouselAnimation] = useState("arrivingTogether");
 
   useEffect(() => {
     fetchSettings();
@@ -28,6 +30,7 @@ export function SettingsSection() {
       if (data.settings) {
         setSettings(data.settings);
         setCarouselInterval(data.settings.carouselInterval);
+        setCarouselAnimation(data.settings.carouselAnimation || "arrivingTogether");
       }
     } catch (error) {
       console.error("Error fetching settings:", error);
@@ -43,7 +46,7 @@ export function SettingsSection() {
       const res = await fetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ carouselInterval }),
+        body: JSON.stringify({ carouselInterval, carouselAnimation }),
       });
 
       if (res.ok) {
@@ -78,6 +81,63 @@ export function SettingsSection() {
     { value: 60, label: "1 minute" },
     { value: 120, label: "2 minutes" },
     { value: 300, label: "5 minutes" },
+  ];
+
+  const animationOptions = [
+    {
+      value: "arrivingTogether",
+      label: "Arriving Together",
+      description: "Widgets arrive from opposite sides with playful wiggles",
+      icon: "🤝",
+    },
+    {
+      value: "racingFriends",
+      label: "Racing Friends",
+      description: "Both race in from the same side - one stops first!",
+      icon: "🏃",
+    },
+    {
+      value: "bouncyBall",
+      label: "Bouncy Ball",
+      description: "Widgets drop from above and bounce like a ball!",
+      icon: "🏀",
+    },
+    {
+      value: "peekaBoo",
+      label: "Peek-a-Boo",
+      description: "Widgets pop out from tiny to big - BOO!",
+      icon: "👀",
+    },
+    {
+      value: "airplaneLanding",
+      label: "Airplane Landing",
+      description: "Widgets swoop in from the sky like airplanes",
+      icon: "✈️",
+    },
+    {
+      value: "sillySpin",
+      label: "Silly Spin",
+      description: "Widgets spin in while growing - so dizzy!",
+      icon: "🌀",
+    },
+    {
+      value: "trampolineJump",
+      label: "Trampoline Jump",
+      description: "Widgets bounce up from below like on a trampoline!",
+      icon: "🤸",
+    },
+    {
+      value: "crashAndRecover",
+      label: "Crash & Recover",
+      description: "Widgets crash in the middle, crumple up, then pop back!",
+      icon: "💥",
+    },
+    {
+      value: "cycle",
+      label: "Surprise Me!",
+      description: "Cycles through all animations every 5 minutes",
+      icon: "🎲",
+    },
   ];
 
   return (
@@ -125,6 +185,41 @@ export function SettingsSection() {
             </div>
           </div>
 
+          {/* Animation Style */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Animation Style
+            </label>
+            <p className="text-xs text-gray-500 mb-2">
+              Choose how widgets animate when rotating
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {animationOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setCarouselAnimation(option.value)}
+                  className={`p-3 rounded-xl text-left transition-all ${
+                    carouselAnimation === option.value
+                      ? "bg-indigo-500 text-white ring-2 ring-indigo-300"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{option.icon}</span>
+                    <div className="min-w-0">
+                      <div className="font-semibold text-sm">{option.label}</div>
+                      <div className={`text-xs truncate ${
+                        carouselAnimation === option.value ? "text-indigo-100" : "text-gray-500"
+                      }`}>
+                        {option.description}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Preview */}
           <div className="bg-gray-50 rounded-xl p-4">
             <p className="text-sm text-gray-600">
@@ -134,6 +229,11 @@ export function SettingsSection() {
                   ? `${carouselInterval} seconds`
                   : `${carouselInterval / 60} minute${carouselInterval > 60 ? "s" : ""}`}
               </span>
+              {" "}with{" "}
+              <span className="font-bold text-indigo-600">
+                {animationOptions.find(o => o.value === carouselAnimation)?.label || "Arriving Together"}
+              </span>
+              {" "}animation
             </p>
           </div>
         </div>

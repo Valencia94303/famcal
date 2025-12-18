@@ -172,6 +172,7 @@ model Settings {
   theme            String   @default("auto") // auto, morning, afternoon, evening, night
   allowedEmails    String?  // JSON array of allowed email addresses
   carouselInterval Int      @default(30) // Seconds between widget rotations
+  carouselAnimation String  @default("arrivingTogether") // Animation preset
 
   updatedAt DateTime @updatedAt
 }

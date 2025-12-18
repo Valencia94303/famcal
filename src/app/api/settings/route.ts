@@ -29,18 +29,20 @@ export async function GET() {
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
-    const { carouselInterval, displayName, theme } = body;
+    const { carouselInterval, carouselAnimation, displayName, theme } = body;
 
     const settings = await prisma.settings.upsert({
       where: { id: "singleton" },
       update: {
         ...(carouselInterval !== undefined && { carouselInterval }),
+        ...(carouselAnimation !== undefined && { carouselAnimation }),
         ...(displayName !== undefined && { displayName }),
         ...(theme !== undefined && { theme }),
       },
       create: {
         id: "singleton",
         carouselInterval: carouselInterval ?? 30,
+        carouselAnimation: carouselAnimation ?? "arrivingTogether",
         displayName: displayName ?? "Family Dashboard",
         theme: theme ?? "auto",
       },
