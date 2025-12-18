@@ -2,6 +2,8 @@
 
 Technical documentation for IT personnel and developers.
 
+> **See also:** [Interactive Mermaid Diagrams](ARCHITECTURE-DIAGRAMS.md) for visual diagrams that render on GitHub.
+
 ## Table of Contents
 
 1. [System Overview](#system-overview)

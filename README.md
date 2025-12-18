@@ -52,6 +52,7 @@ Open [http://localhost:3000](http://localhost:3000) for the dashboard and [http:
 |----------|-------------|
 | [Deployment Guide](docs/DEPLOYMENT.md) | Step-by-step Raspberry Pi 5 setup |
 | [Architecture](docs/ARCHITECTURE.md) | Technical architecture and system design |
+| [Architecture Diagrams](docs/ARCHITECTURE-DIAGRAMS.md) | Interactive Mermaid JS diagrams |
 | [Configuration](docs/CONFIGURATION.md) | Settings and customization options |
 
 ## System Requirements
