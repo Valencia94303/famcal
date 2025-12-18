@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MobileNav, TabType, PointsSection, RewardsSection, SettingsSection } from "@/components/manage";
+import { MobileNav, TabType, PointsSection, RewardsSection, SettingsSection, TasksSection, ShoppingSection, HabitsSection, ScheduleSection, PhotosSection } from "@/components/manage";
 
 interface FamilyMember {
   id: string;
@@ -682,6 +682,66 @@ export default function ManagePage() {
                     )}
                   </div>
                 </div>
+              </motion.div>
+            )}
+
+            {/* Tasks Tab */}
+            {tab === "tasks" && (
+              <motion.div
+                key="tasks"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+              >
+                <TasksSection onDataChange={fetchData} />
+              </motion.div>
+            )}
+
+            {/* Habits Tab */}
+            {tab === "habits" && (
+              <motion.div
+                key="habits"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+              >
+                <HabitsSection members={members} onDataChange={fetchData} />
+              </motion.div>
+            )}
+
+            {/* Shopping Tab */}
+            {tab === "shopping" && (
+              <motion.div
+                key="shopping"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+              >
+                <ShoppingSection onDataChange={fetchData} />
+              </motion.div>
+            )}
+
+            {/* Schedule Tab */}
+            {tab === "schedule" && (
+              <motion.div
+                key="schedule"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+              >
+                <ScheduleSection onDataChange={fetchData} />
+              </motion.div>
+            )}
+
+            {/* Photos Tab */}
+            {tab === "photos" && (
+              <motion.div
+                key="photos"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+              >
+                <PhotosSection onDataChange={fetchData} />
               </motion.div>
             )}
 

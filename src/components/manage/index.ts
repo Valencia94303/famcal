@@ -3,3 +3,8 @@ export type { TabType } from "./MobileNav";
 export { PointsSection } from "./PointsSection";
 export { RewardsSection } from "./RewardsSection";
 export { SettingsSection } from "./SettingsSection";
+export { TasksSection } from "./TasksSection";
+export { ShoppingSection } from "./ShoppingSection";
+export { HabitsSection } from "./HabitsSection";
+export { ScheduleSection } from "./ScheduleSection";
+export { PhotosSection } from "./PhotosSection";

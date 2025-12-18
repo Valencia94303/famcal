@@ -78,6 +78,7 @@ model FamilyMember {
   pointTransactions    PointTransaction[]
   redemptionsRequested RewardRedemption[] @relation("RedemptionRequester")
   redemptionsApproved  RewardRedemption[] @relation("RedemptionApprover")
+  habitLogs            HabitLog[]
 }
 
 model Chore {
@@ -238,4 +239,104 @@ model PointsSettings {
   cashConversionRate Float    @default(0.1) // 10 pts = $1 means rate = 0.1
   minCashoutPoints   Int      @default(100) // Minimum points for cash-out
   updatedAt          DateTime @updatedAt
+}
+
+// ============================================
+// Quick Tasks (Obsidian Import)
+// ============================================
+
+// Simple tasks imported from Obsidian or created manually
+model Task {
+  id            String    @id @default(cuid())
+  title         String
+  completed     Boolean   @default(false)
+  priority      String?   // HIGH, MEDIUM, LOW (from Obsidian: ⏫, 🔼, 🔽)
+  dueDate       DateTime? // 📅 in Obsidian
+  startDate     DateTime? // 🛫 in Obsidian
+  scheduledDate DateTime? // ⏳ in Obsidian
+  recurrence    String?   // 🔁 in Obsidian (e.g., "every day", "every week")
+  notes         String?
+  sourceFile    String?   // Original .md filename if imported
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  completedAt   DateTime?
+
+  @@index([completed])
+  @@index([dueDate])
+}
+
+// ============================================
+// Shopping List
+// ============================================
+
+model ShoppingItem {
+  id        String   @id @default(cuid())
+  name      String
+  quantity  Int      @default(1)
+  unit      String?  // e.g., "lbs", "oz", "pack", "dozen"
+  store     String   @default("OTHER") // COSTCO, WALMART, TARGET, OTHER
+  checked   Boolean  @default(false)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([store])
+  @@index([checked])
+}
+
+// ============================================
+// Habits & Daily Schedule
+// ============================================
+
+// Habits that kids can complete daily for points
+model Habit {
+  id          String   @id @default(cuid())
+  name        String
+  icon        String?  // Emoji
+  points      Int      @default(1)
+  frequency   String   @default("DAILY") // DAILY, WEEKLY
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  logs HabitLog[]
+}
+
+// Log of completed habits
+model HabitLog {
+  id             String       @id @default(cuid())
+  habit          Habit        @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  habitId        String
+  familyMember   FamilyMember @relation(fields: [familyMemberId], references: [id], onDelete: Cascade)
+  familyMemberId String
+  completedAt    DateTime     @default(now())
+  completedDate  String       // YYYY-MM-DD for easy querying
+
+  @@unique([habitId, familyMemberId, completedDate])
+  @@index([familyMemberId])
+  @@index([completedDate])
+}
+
+// Daily schedule items (routines)
+model ScheduleItem {
+  id        String   @id @default(cuid())
+  title     String
+  time      String   // HH:MM format
+  icon      String?  // Emoji
+  days      String?  // JSON array of days, null = every day
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([time])
+}
+
+// Family photos for slideshow
+model FamilyPhoto {
+  id        String   @id @default(cuid())
+  url       String   // URL or path to photo
+  caption   String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
 }

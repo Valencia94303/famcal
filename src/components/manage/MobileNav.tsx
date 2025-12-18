@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-export type TabType = "family" | "chores" | "rewards" | "points" | "settings";
+export type TabType = "family" | "chores" | "tasks" | "habits" | "shopping" | "schedule" | "photos" | "rewards" | "points" | "settings";
 
 interface MobileNavProps {
   activeTab: TabType;
@@ -13,6 +13,11 @@ interface MobileNavProps {
 const tabs: { id: TabType; label: string; icon: string }[] = [
   { id: "family", label: "Family", icon: "users" },
   { id: "chores", label: "Chores", icon: "clipboard" },
+  { id: "habits", label: "Habits", icon: "habit" },
+  { id: "tasks", label: "Tasks", icon: "checklist" },
+  { id: "shopping", label: "Shop", icon: "cart" },
+  { id: "schedule", label: "Schedule", icon: "clock" },
+  { id: "photos", label: "Photos", icon: "photo" },
   { id: "rewards", label: "Rewards", icon: "gift" },
   { id: "points", label: "Points", icon: "star" },
   { id: "settings", label: "Settings", icon: "cog" },
@@ -32,6 +37,36 @@ function TabIcon({ icon, isActive }: { icon: string; isActive: boolean }) {
       return (
         <svg className={`w-6 h-6 ${color}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+        </svg>
+      );
+    case "checklist":
+      return (
+        <svg className={`w-6 h-6 ${color}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      );
+    case "cart":
+      return (
+        <svg className={`w-6 h-6 ${color}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      );
+    case "habit":
+      return (
+        <svg className={`w-6 h-6 ${color}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+        </svg>
+      );
+    case "clock":
+      return (
+        <svg className={`w-6 h-6 ${color}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      );
+    case "photo":
+      return (
+        <svg className={`w-6 h-6 ${color}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       );
     case "gift":

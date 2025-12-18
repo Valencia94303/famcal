@@ -8,6 +8,11 @@ import { Clock } from "./Clock";
 import { CalendarDisplay } from "./CalendarDisplay";
 import { ChoreBoard } from "./ChoreBoard";
 import { PointsDisplay } from "./PointsDisplay";
+import { TasksDisplay } from "./TasksDisplay";
+import { ShoppingDisplay } from "./ShoppingDisplay";
+import { HabitsDisplay } from "./HabitsDisplay";
+import { ScheduleDisplay } from "./ScheduleDisplay";
+import { MealPlanDisplay } from "./MealPlanDisplay";
 import { WidgetCarousel, AnimationPreset, ANIMATION_PRESETS } from "./WidgetCarousel";
 
 export function Dashboard() {
@@ -88,9 +93,34 @@ export function Dashboard() {
         component: <CalendarDisplay theme={theme} />,
       },
       {
+        id: "schedule",
+        name: "Schedule",
+        component: <ScheduleDisplay theme={theme} />,
+      },
+      {
         id: "chores",
         name: "Chores",
         component: <ChoreBoard theme={theme} />,
+      },
+      {
+        id: "habits",
+        name: "Habits",
+        component: <HabitsDisplay theme={theme} />,
+      },
+      {
+        id: "tasks",
+        name: "Tasks",
+        component: <TasksDisplay theme={theme} />,
+      },
+      {
+        id: "shopping",
+        name: "Shopping",
+        component: <ShoppingDisplay theme={theme} />,
+      },
+      {
+        id: "mealplan",
+        name: "Meals",
+        component: <MealPlanDisplay theme={theme} />,
       },
       {
         id: "points",

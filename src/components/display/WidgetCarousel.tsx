@@ -20,6 +20,11 @@ export type AnimationPreset =
   | "sillySpin"
   | "trampolineJump"
   | "crashAndRecover"
+  | "jellyWobble"
+  | "rocketLaunch"
+  | "swingIn"
+  | "tumbleIn"
+  | "balloonFloat"
   | "cycle"; // Meta-preset: cycles through all presets
 
 // List of actual animation presets (excluding "cycle")
@@ -32,6 +37,11 @@ export const ANIMATION_PRESETS: Exclude<AnimationPreset, "cycle">[] = [
   "sillySpin",
   "trampolineJump",
   "crashAndRecover",
+  "jellyWobble",
+  "rocketLaunch",
+  "swingIn",
+  "tumbleIn",
+  "balloonFloat",
 ];
 
 interface WidgetCarouselProps {
@@ -737,6 +747,398 @@ const animationPresets = {
       transformOrigin: position === 0 ? "right center" : "left center",
     }),
   },
+
+  // Preset 9: "Jelly Wobble" - widgets wobble in like wobbly jelly/gelatin
+  jellyWobble: {
+    getVariants: (position: number) => {
+      const isFirst = position === 0;
+      return {
+        enter: {
+          x: isFirst ? "-100%" : "100%",
+          opacity: 0,
+          scaleX: 1,
+          scaleY: 1,
+          rotate: 0,
+          y: 0,
+          boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.3)",
+        },
+        center: {
+          x: 0,
+          opacity: 1,
+          // Jelly wobble effect - squish and stretch
+          scaleX: [1, 1.15, 0.9, 1.1, 0.95, 1.05, 0.98, 1.02, 1],
+          scaleY: [1, 0.85, 1.1, 0.9, 1.05, 0.95, 1.02, 0.98, 1],
+          rotate: [0, isFirst ? 3 : -3, isFirst ? -4 : 4, isFirst ? 3 : -3, isFirst ? -2 : 2, isFirst ? 1 : -1, 0, 0, 0],
+          y: [0, 10, -8, 6, -4, 3, -2, 1, 0],
+          boxShadow: [
+            "0 20px 40px -10px rgba(0, 0, 0, 0.3)",
+            "0 10px 25px -8px rgba(0, 0, 0, 0.25)",
+            "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
+            "0 15px 30px -8px rgba(0, 0, 0, 0.28)",
+            "0 20px 40px -10px rgba(0, 0, 0, 0.3)",
+            "0 12px 28px -8px rgba(0, 0, 0, 0.25)",
+            "0 18px 35px -10px rgba(0, 0, 0, 0.28)",
+            "0 8px 20px -6px rgba(0, 0, 0, 0.2)",
+            "0 4px 12px -3px rgba(0, 0, 0, 0.08)",
+          ],
+        },
+        exit: {
+          x: isFirst ? "-100%" : "100%",
+          opacity: 0,
+          scaleX: 0.9,
+          scaleY: 1.1,
+          boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.3)",
+        },
+      };
+    },
+    getTransition: (position: number) => {
+      const isFirst = position === 0;
+      const baseDelay = isFirst ? 0.1 : 0.25;
+      return {
+        x: { type: "spring" as const, stiffness: 80, damping: 15, delay: baseDelay },
+        opacity: { duration: 0.3, delay: baseDelay },
+        scaleX: {
+          duration: 1.2,
+          times: [0, 0.15, 0.28, 0.4, 0.52, 0.65, 0.78, 0.9, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay + 0.2,
+        },
+        scaleY: {
+          duration: 1.2,
+          times: [0, 0.15, 0.28, 0.4, 0.52, 0.65, 0.78, 0.9, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay + 0.2,
+        },
+        rotate: {
+          duration: 1.2,
+          times: [0, 0.15, 0.28, 0.4, 0.52, 0.65, 0.78, 0.9, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay + 0.2,
+        },
+        y: {
+          duration: 1.2,
+          times: [0, 0.15, 0.28, 0.4, 0.52, 0.65, 0.78, 0.9, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay + 0.2,
+        },
+        boxShadow: {
+          duration: 1.2,
+          times: [0, 0.15, 0.28, 0.4, 0.52, 0.65, 0.78, 0.9, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay + 0.2,
+        },
+      };
+    },
+    getStyle: () => ({
+      transformOrigin: "center center",
+    }),
+  },
+
+  // Preset 10: "Rocket Launch" - widgets blast off from below
+  rocketLaunch: {
+    getVariants: (position: number) => {
+      const isFirst = position === 0;
+      return {
+        enter: {
+          y: "150%",
+          x: 0,
+          opacity: 0,
+          scale: 0.8,
+          rotate: 0,
+          boxShadow: "0 -20px 40px -10px rgba(255, 100, 0, 0.4), 0 40px 60px -15px rgba(0, 0, 0, 0.3)",
+        },
+        center: {
+          y: [0, -60, -20, -35, -10, -18, -5, -8, 0], // Rocket overshoot then settle
+          x: 0,
+          opacity: 1,
+          scale: [0.9, 1.05, 0.98, 1.02, 0.99, 1.01, 1, 1, 1],
+          rotate: [0, isFirst ? -3 : 3, isFirst ? 2 : -2, isFirst ? -1 : 1, 0, 0, 0, 0, 0],
+          boxShadow: [
+            "0 -15px 30px -8px rgba(255, 100, 0, 0.3), 0 30px 50px -15px rgba(0, 0, 0, 0.4)",
+            "0 50px 80px -20px rgba(0, 0, 0, 0.5)",
+            "0 25px 45px -12px rgba(0, 0, 0, 0.35)",
+            "0 35px 60px -15px rgba(0, 0, 0, 0.4)",
+            "0 20px 40px -10px rgba(0, 0, 0, 0.3)",
+            "0 28px 50px -12px rgba(0, 0, 0, 0.35)",
+            "0 15px 30px -8px rgba(0, 0, 0, 0.25)",
+            "0 10px 22px -6px rgba(0, 0, 0, 0.2)",
+            "0 4px 12px -3px rgba(0, 0, 0, 0.08)",
+          ],
+        },
+        exit: {
+          y: "-150%",
+          opacity: 0,
+          scale: 0.8,
+          boxShadow: "0 20px 40px -10px rgba(255, 100, 0, 0.3), 0 -30px 50px -15px rgba(0, 0, 0, 0.3)",
+        },
+      };
+    },
+    getTransition: (position: number) => {
+      const isFirst = position === 0;
+      const baseDelay = isFirst ? 0.1 : 0.2;
+      return {
+        y: {
+          duration: 1.4,
+          times: [0, 0.2, 0.35, 0.48, 0.6, 0.72, 0.82, 0.92, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay,
+        },
+        x: { duration: 0.3, delay: baseDelay },
+        opacity: { duration: 0.2, delay: baseDelay },
+        scale: {
+          duration: 1.4,
+          times: [0, 0.2, 0.35, 0.48, 0.6, 0.72, 0.82, 0.92, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay,
+        },
+        rotate: {
+          duration: 1.4,
+          times: [0, 0.2, 0.35, 0.48, 0.6, 0.72, 0.82, 0.92, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay,
+        },
+        boxShadow: {
+          duration: 1.4,
+          times: [0, 0.2, 0.35, 0.48, 0.6, 0.72, 0.82, 0.92, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay,
+        },
+      };
+    },
+    getStyle: () => ({
+      transformOrigin: "center bottom",
+    }),
+  },
+
+  // Preset 11: "Swing In" - widgets swing in like a pendulum
+  swingIn: {
+    getVariants: (position: number) => {
+      const isFirst = position === 0;
+      return {
+        enter: {
+          rotate: isFirst ? -90 : 90, // Start rotated up like hanging
+          opacity: 0,
+          scale: 0.9,
+          x: 0,
+          y: -50,
+          boxShadow: "0 30px 60px -15px rgba(0, 0, 0, 0.4)",
+        },
+        center: {
+          rotate: [isFirst ? -90 : 90, isFirst ? 25 : -25, isFirst ? -15 : 15, isFirst ? 8 : -8, isFirst ? -4 : 4, isFirst ? 2 : -2, 0],
+          opacity: 1,
+          scale: [0.9, 1.02, 0.98, 1.01, 0.99, 1, 1],
+          x: 0,
+          y: [0, 20, -10, 8, -4, 2, 0],
+          boxShadow: [
+            "0 30px 60px -15px rgba(0, 0, 0, 0.4)",
+            "0 15px 35px -10px rgba(0, 0, 0, 0.3)",
+            "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
+            "0 12px 28px -8px rgba(0, 0, 0, 0.25)",
+            "0 18px 38px -10px rgba(0, 0, 0, 0.28)",
+            "0 8px 20px -6px rgba(0, 0, 0, 0.2)",
+            "0 4px 12px -3px rgba(0, 0, 0, 0.08)",
+          ],
+        },
+        exit: {
+          rotate: isFirst ? 90 : -90,
+          opacity: 0,
+          scale: 0.9,
+          y: -50,
+          boxShadow: "0 30px 60px -15px rgba(0, 0, 0, 0.4)",
+        },
+      };
+    },
+    getTransition: (position: number) => {
+      const isFirst = position === 0;
+      const baseDelay = isFirst ? 0.15 : 0.35;
+      return {
+        rotate: {
+          duration: 1.5,
+          times: [0, 0.25, 0.42, 0.58, 0.72, 0.86, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay,
+        },
+        opacity: { duration: 0.3, delay: baseDelay },
+        scale: {
+          duration: 1.5,
+          times: [0, 0.25, 0.42, 0.58, 0.72, 0.86, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay,
+        },
+        x: { duration: 0.3, delay: baseDelay },
+        y: {
+          duration: 1.5,
+          times: [0, 0.25, 0.42, 0.58, 0.72, 0.86, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay,
+        },
+        boxShadow: {
+          duration: 1.5,
+          times: [0, 0.25, 0.42, 0.58, 0.72, 0.86, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay,
+        },
+      };
+    },
+    getStyle: (position: number) => ({
+      transformOrigin: position === 0 ? "left top" : "right top",
+    }),
+  },
+
+  // Preset 12: "Tumble In" - widgets roll/tumble in from sides
+  tumbleIn: {
+    getVariants: (position: number) => {
+      const isFirst = position === 0;
+      return {
+        enter: {
+          x: isFirst ? "-120%" : "120%",
+          rotate: isFirst ? -360 : 360, // Full rotation while coming in
+          opacity: 0,
+          scale: 0.8,
+          y: 50,
+          boxShadow: "0 30px 60px -15px rgba(0, 0, 0, 0.4)",
+        },
+        center: {
+          x: 0,
+          rotate: [isFirst ? -360 : 360, isFirst ? -20 : 20, isFirst ? 10 : -10, isFirst ? -5 : 5, 0],
+          opacity: 1,
+          scale: [0.85, 1.05, 0.97, 1.02, 1],
+          y: [30, -15, 8, -3, 0],
+          boxShadow: [
+            "0 30px 60px -15px rgba(0, 0, 0, 0.45)",
+            "0 20px 45px -12px rgba(0, 0, 0, 0.35)",
+            "0 12px 30px -8px rgba(0, 0, 0, 0.28)",
+            "0 8px 20px -6px rgba(0, 0, 0, 0.2)",
+            "0 4px 12px -3px rgba(0, 0, 0, 0.08)",
+          ],
+        },
+        exit: {
+          x: isFirst ? "120%" : "-120%",
+          rotate: isFirst ? 360 : -360,
+          opacity: 0,
+          scale: 0.8,
+          y: 50,
+          boxShadow: "0 30px 60px -15px rgba(0, 0, 0, 0.4)",
+        },
+      };
+    },
+    getTransition: (position: number) => {
+      const isFirst = position === 0;
+      const baseDelay = isFirst ? 0.1 : 0.25;
+      return {
+        x: { type: "spring" as const, stiffness: 60, damping: 14, delay: baseDelay },
+        rotate: {
+          duration: 1.2,
+          times: [0, 0.4, 0.6, 0.8, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay,
+        },
+        opacity: { duration: 0.25, delay: baseDelay },
+        scale: {
+          duration: 1.2,
+          times: [0, 0.4, 0.6, 0.8, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay,
+        },
+        y: {
+          duration: 1.2,
+          times: [0, 0.4, 0.6, 0.8, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay,
+        },
+        boxShadow: {
+          duration: 1.2,
+          times: [0, 0.4, 0.6, 0.8, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay,
+        },
+      };
+    },
+    getStyle: () => ({
+      transformOrigin: "center center",
+    }),
+  },
+
+  // Preset 13: "Balloon Float" - widgets float up gently like balloons
+  balloonFloat: {
+    getVariants: (position: number) => {
+      const isFirst = position === 0;
+      return {
+        enter: {
+          y: "120%",
+          x: isFirst ? -30 : 30,
+          opacity: 0,
+          scale: 0.9,
+          rotate: isFirst ? -8 : 8,
+          boxShadow: "0 -10px 30px -5px rgba(0, 0, 0, 0.2)",
+        },
+        center: {
+          y: [0, -25, -8, -15, -3, -8, 0], // Gentle floating motion
+          x: [isFirst ? -15 : 15, isFirst ? 10 : -10, isFirst ? -8 : 8, isFirst ? 5 : -5, isFirst ? -3 : 3, 0, 0],
+          opacity: 1,
+          scale: [0.95, 1.03, 0.98, 1.01, 0.99, 1, 1],
+          rotate: [isFirst ? -5 : 5, isFirst ? 4 : -4, isFirst ? -3 : 3, isFirst ? 2 : -2, isFirst ? -1 : 1, 0, 0],
+          boxShadow: [
+            "0 -8px 25px -5px rgba(0, 0, 0, 0.15)",
+            "0 20px 45px -12px rgba(0, 0, 0, 0.3)",
+            "0 10px 30px -8px rgba(0, 0, 0, 0.22)",
+            "0 15px 38px -10px rgba(0, 0, 0, 0.26)",
+            "0 8px 22px -6px rgba(0, 0, 0, 0.18)",
+            "0 6px 18px -5px rgba(0, 0, 0, 0.14)",
+            "0 4px 12px -3px rgba(0, 0, 0, 0.08)",
+          ],
+        },
+        exit: {
+          y: "-120%",
+          x: isFirst ? 30 : -30,
+          opacity: 0,
+          scale: 0.9,
+          rotate: isFirst ? 8 : -8,
+          boxShadow: "0 30px 50px -15px rgba(0, 0, 0, 0.3)",
+        },
+      };
+    },
+    getTransition: (position: number) => {
+      const isFirst = position === 0;
+      const baseDelay = isFirst ? 0.15 : 0.35;
+      return {
+        y: {
+          duration: 2.0,
+          times: [0, 0.2, 0.38, 0.55, 0.72, 0.88, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay,
+        },
+        x: {
+          duration: 2.0,
+          times: [0, 0.2, 0.38, 0.55, 0.72, 0.88, 1],
+          ease: "easeInOut" as const,
+          delay: baseDelay,
+        },
+        opacity: { duration: 0.4, delay: baseDelay },
+        scale: {
+          duration: 2.0,
+          times: [0, 0.2, 0.38, 0.55, 0.72, 0.88, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay,
+        },
+        rotate: {
+          duration: 2.0,
+          times: [0, 0.2, 0.38, 0.55, 0.72, 0.88, 1],
+          ease: "easeInOut" as const,
+          delay: baseDelay,
+        },
+        boxShadow: {
+          duration: 2.0,
+          times: [0, 0.2, 0.38, 0.55, 0.72, 0.88, 1],
+          ease: "easeOut" as const,
+          delay: baseDelay,
+        },
+      };
+    },
+    getStyle: () => ({
+      transformOrigin: "center center",
+    }),
+  },
 };
 
 // ============================================
@@ -812,31 +1214,36 @@ export function WidgetCarousel({
         </AnimatePresence>
       </div>
 
-      {/* Progress indicator dots */}
+      {/* Progress indicator dots - clickable */}
       <div className="flex justify-center gap-3 mt-8">
         {widgets.map((widget, index) => {
           const isVisible = visibleIndices.includes(index);
           return (
-            <motion.div
+            <motion.button
               key={widget.id}
-              className="relative"
+              className="relative p-2 -m-2 cursor-pointer"
               animate={{ scale: isVisible ? 1 : 0.8 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
+              onClick={() => {
+                setCurrentIndex(index);
+                setVisibleIndices(getVisibleIndices(index));
+              }}
+              aria-label={`Go to ${widget.name}`}
             >
               <div
                 className={`w-3 h-3 rounded-full transition-all duration-500 ${
-                  isVisible ? "bg-white shadow-lg shadow-white/30" : "bg-white/30"
+                  isVisible ? "bg-white shadow-lg shadow-white/30" : "bg-white/30 hover:bg-white/50"
                 }`}
               />
               {isVisible && (
                 <motion.div
-                  className="absolute inset-0 rounded-full bg-white/50"
+                  className="absolute inset-2 rounded-full bg-white/50"
                   initial={{ scale: 1, opacity: 0.5 }}
                   animate={{ scale: 2, opacity: 0 }}
                   transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
                 />
               )}
-            </motion.div>
+            </motion.button>
           );
         })}
       </div>

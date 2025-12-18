@@ -1,7 +1,13 @@
+export { AutoScroll } from "./AutoScroll";
 export { Clock } from "./Clock";
 export { DynamicBackground } from "./DynamicBackground";
 export { CalendarDisplay } from "./CalendarDisplay";
 export { ChoreBoard } from "./ChoreBoard";
 export { PointsDisplay } from "./PointsDisplay";
+export { TasksDisplay } from "./TasksDisplay";
+export { ShoppingDisplay } from "./ShoppingDisplay";
+export { HabitsDisplay } from "./HabitsDisplay";
+export { ScheduleDisplay } from "./ScheduleDisplay";
+export { MealPlanDisplay } from "./MealPlanDisplay";
 export { WidgetCarousel } from "./WidgetCarousel";
 export { Dashboard } from "./Dashboard";

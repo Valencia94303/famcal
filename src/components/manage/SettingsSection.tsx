@@ -133,10 +133,40 @@ export function SettingsSection() {
       icon: "💥",
     },
     {
+      value: "jellyWobble",
+      label: "Jelly Wobble",
+      description: "Widgets wobble in like wobbly jelly!",
+      icon: "🍮",
+    },
+    {
+      value: "rocketLaunch",
+      label: "Rocket Launch",
+      description: "Widgets blast off from below like rockets!",
+      icon: "🚀",
+    },
+    {
+      value: "swingIn",
+      label: "Swing In",
+      description: "Widgets swing in like a pendulum!",
+      icon: "🎪",
+    },
+    {
+      value: "tumbleIn",
+      label: "Tumble In",
+      description: "Widgets roll and tumble in from the sides!",
+      icon: "🎲",
+    },
+    {
+      value: "balloonFloat",
+      label: "Balloon Float",
+      description: "Widgets float up gently like balloons!",
+      icon: "🎈",
+    },
+    {
       value: "cycle",
       label: "Surprise Me!",
       description: "Cycles through all animations every 5 minutes",
-      icon: "🎲",
+      icon: "🎰",
     },
   ];
 

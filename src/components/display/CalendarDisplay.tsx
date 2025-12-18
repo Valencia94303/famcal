@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { Theme } from "@/lib/theme";
+import { AutoScroll } from "./AutoScroll";
 
 interface CalendarEvent {
   id: string;
@@ -134,13 +135,13 @@ export function CalendarDisplay({ theme }: CalendarDisplayProps) {
           />
         </div>
       ) : (
-        <motion.div
-          className="space-y-3 overflow-y-auto max-h-[50vh] hide-scrollbar"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <AnimatePresence mode="popLayout">
+        <AutoScroll maxHeight="45vh" duration={20}>
+          <motion.div
+            className="space-y-3"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
             {events.length === 0 ? (
               <motion.p
                 key="no-events"
@@ -174,8 +175,8 @@ export function CalendarDisplay({ theme }: CalendarDisplayProps) {
                 </motion.div>
               ))
             )}
-          </AnimatePresence>
-        </motion.div>
+          </motion.div>
+        </AutoScroll>
       )}
 
       {!isConnected && !isLoading && (

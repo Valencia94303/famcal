@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Theme } from "@/lib/theme";
+import { AutoScroll } from "./AutoScroll";
 
 interface Assignee {
   id: string;
@@ -215,13 +216,13 @@ export function ChoreBoard({ theme }: ChoreBoardProps) {
         </div>
       ) : (
         <>
-          <motion.div
-            className="space-y-3 mb-6 overflow-y-auto max-h-[45vh] hide-scrollbar"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <AnimatePresence mode="popLayout">
+          <AutoScroll maxHeight="40vh" duration={20} className="mb-6">
+            <motion.div
+              className="space-y-3"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
               {chores.map((chore) => (
                 <motion.div
                   key={chore.id}
@@ -320,8 +321,8 @@ export function ChoreBoard({ theme }: ChoreBoardProps) {
                   </div>
                 </motion.div>
               ))}
-            </AnimatePresence>
-          </motion.div>
+            </motion.div>
+          </AutoScroll>
 
           {/* Family member picker popup */}
           <AnimatePresence>
