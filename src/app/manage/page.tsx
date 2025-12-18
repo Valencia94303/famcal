@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MobileNav, TabType, PointsSection, RewardsSection } from "@/components/manage";
+import { MobileNav, TabType, PointsSection, RewardsSection, SettingsSection } from "@/components/manage";
 
 interface FamilyMember {
   id: string;
@@ -706,6 +706,18 @@ export default function ManagePage() {
                 exit={{ opacity: 0, x: 20 }}
               >
                 <PointsSection members={members} onDataChange={fetchData} />
+              </motion.div>
+            )}
+
+            {/* Settings Tab */}
+            {tab === "settings" && (
+              <motion.div
+                key="settings"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+              >
+                <SettingsSection />
               </motion.div>
             )}
           </AnimatePresence>

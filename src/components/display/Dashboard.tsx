@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { getThemeForTime, getNextThemeChange, Theme } from "@/lib/theme";
 import { DynamicBackground } from "./DynamicBackground";
@@ -8,9 +8,31 @@ import { Clock } from "./Clock";
 import { CalendarDisplay } from "./CalendarDisplay";
 import { ChoreBoard } from "./ChoreBoard";
 import { PointsDisplay } from "./PointsDisplay";
+import { WidgetCarousel } from "./WidgetCarousel";
 
 export function Dashboard() {
   const [theme, setTheme] = useState<Theme>(getThemeForTime());
+  const [carouselInterval, setCarouselInterval] = useState(30000); // Default 30s
+
+  // Fetch settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch("/api/settings");
+        const data = await res.json();
+        if (data.settings?.carouselInterval) {
+          setCarouselInterval(data.settings.carouselInterval * 1000); // Convert to ms
+        }
+      } catch (error) {
+        console.error("Error fetching settings:", error);
+      }
+    };
+    fetchSettings();
+
+    // Refetch settings every 5 minutes to pick up changes
+    const interval = setInterval(fetchSettings, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Update theme when time changes
   useEffect(() => {
@@ -35,9 +57,31 @@ export function Dashboard() {
     };
   }, [theme.name]);
 
+  // Define widgets for the carousel
+  const widgets = useMemo(
+    () => [
+      {
+        id: "calendar",
+        name: "Calendar",
+        component: <CalendarDisplay theme={theme} />,
+      },
+      {
+        id: "chores",
+        name: "Chores",
+        component: <ChoreBoard theme={theme} />,
+      },
+      {
+        id: "points",
+        name: "Points",
+        component: <PointsDisplay theme={theme} />,
+      },
+    ],
+    [theme]
+  );
+
   return (
     <DynamicBackground theme={theme}>
-      <div className="min-h-screen p-8 lg:p-12">
+      <div className="min-h-screen p-8 lg:p-12 flex flex-col">
         {/* Header with Clock */}
         <motion.header
           className="mb-8 lg:mb-12"
@@ -48,29 +92,15 @@ export function Dashboard() {
           <Clock className={theme.textPrimary} />
         </motion.header>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-          {/* Calendar Section */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <CalendarDisplay theme={theme} />
-          </motion.div>
-
-          {/* Chores Section */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col gap-6"
-          >
-            <ChoreBoard theme={theme} />
-
-            {/* Points Leaderboard */}
-            <PointsDisplay theme={theme} />
-          </motion.div>
+        {/* Widget Carousel */}
+        <div className="flex-1 flex items-center">
+          <div className="w-full">
+            <WidgetCarousel
+              widgets={widgets}
+              theme={theme}
+              rotationInterval={carouselInterval}
+            />
+          </div>
         </div>
 
         {/* Footer */}
