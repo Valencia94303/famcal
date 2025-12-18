@@ -39,6 +39,7 @@ export async function PUT(request: Request) {
       headerAlternateInterval,
       weatherLat,
       weatherLon,
+      weatherCity,
       // Screensaver settings
       screensaverEnabled,
       screensaverStartHour,
@@ -59,6 +60,7 @@ export async function PUT(request: Request) {
         ...(headerAlternateInterval !== undefined && { headerAlternateInterval }),
         ...(weatherLat !== undefined && { weatherLat }),
         ...(weatherLon !== undefined && { weatherLon }),
+        ...(weatherCity !== undefined && { weatherCity }),
         // Screensaver settings
         ...(screensaverEnabled !== undefined && { screensaverEnabled }),
         ...(screensaverStartHour !== undefined && { screensaverStartHour }),
@@ -76,6 +78,7 @@ export async function PUT(request: Request) {
         headerAlternateInterval: headerAlternateInterval ?? 30,
         weatherLat: weatherLat ?? null,
         weatherLon: weatherLon ?? null,
+        weatherCity: weatherCity ?? null,
         screensaverEnabled: screensaverEnabled ?? false,
         screensaverStartHour: screensaverStartHour ?? 18,
         screensaverEndHour: screensaverEndHour ?? 23,

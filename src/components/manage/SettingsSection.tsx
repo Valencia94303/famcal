@@ -12,6 +12,7 @@ interface Settings {
   headerAlternateInterval: number;
   weatherLat: number | null;
   weatherLon: number | null;
+  weatherCity: string | null;
   // Photo Mode settings
   screensaverEnabled: boolean;
   screensaverPhotoPath: string;
@@ -32,6 +33,7 @@ export function SettingsSection() {
   const [headerAlternateInterval, setHeaderAlternateInterval] = useState(30);
   const [weatherLat, setWeatherLat] = useState<string>("");
   const [weatherLon, setWeatherLon] = useState<string>("");
+  const [weatherCity, setWeatherCity] = useState<string>("");
   // Photo Mode state
   const [screensaverEnabled, setScreensaverEnabled] = useState(false);
   const [screensaverPhotoPath, setScreensaverPhotoPath] = useState("/home/pi/famcal-photos");
@@ -54,6 +56,7 @@ export function SettingsSection() {
         setHeaderAlternateInterval(data.settings.headerAlternateInterval || 30);
         setWeatherLat(data.settings.weatherLat?.toString() || "");
         setWeatherLon(data.settings.weatherLon?.toString() || "");
+        setWeatherCity(data.settings.weatherCity || "");
         // Photo Mode settings
         setScreensaverEnabled(data.settings.screensaverEnabled || false);
         setScreensaverPhotoPath(data.settings.screensaverPhotoPath || "/home/pi/famcal-photos");
@@ -81,6 +84,7 @@ export function SettingsSection() {
           headerAlternateInterval,
           weatherLat: weatherLat ? parseFloat(weatherLat) : null,
           weatherLon: weatherLon ? parseFloat(weatherLon) : null,
+          weatherCity: weatherCity || null,
           // Photo Mode settings
           screensaverEnabled,
           screensaverPhotoPath,
@@ -373,33 +377,47 @@ export function SettingsSection() {
 
           {/* Weather Location */}
           {(headerMode === "weather" || headerMode === "alternate") && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Weather Location
-              </label>
-              <p className="text-xs text-gray-500 mb-2">
-                Enter latitude and longitude for weather data (use Google Maps to find coordinates)
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Latitude</label>
-                  <input
-                    type="text"
-                    placeholder="e.g., 40.7128"
-                    value={weatherLat}
-                    onChange={(e) => setWeatherLat(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Longitude</label>
-                  <input
-                    type="text"
-                    placeholder="e.g., -74.0060"
-                    value={weatherLon}
-                    onChange={(e) => setWeatherLon(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Location Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., Sherwoods Manor"
+                  value={weatherCity}
+                  onChange={(e) => setWeatherCity(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Coordinates
+                </label>
+                <p className="text-xs text-gray-500 mb-2">
+                  Use Google Maps to find coordinates (right-click → copy coordinates)
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Latitude</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., 38.0417"
+                      value={weatherLat}
+                      onChange={(e) => setWeatherLat(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Longitude</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., -121.3641"
+                      value={weatherLon}
+                      onChange={(e) => setWeatherLon(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

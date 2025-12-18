@@ -89,6 +89,7 @@ export async function GET() {
       isDay: data.current_weather.is_day === 1,
       high: Math.round(data.daily.temperature_2m_max[0]),
       low: Math.round(data.daily.temperature_2m_min[0]),
+      city: settings.weatherCity || null,
     });
   } catch (error) {
     console.error("Error fetching weather:", error);

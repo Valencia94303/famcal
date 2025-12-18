@@ -180,6 +180,7 @@ model Settings {
   headerAlternateInterval Int      @default(30)          // seconds between switches
   weatherLat              Float?                         // latitude for weather
   weatherLon              Float?                         // longitude for weather
+  weatherCity             String?                        // city name to display
 
   // Photo Screensaver settings
   screensaverEnabled    Boolean  @default(false)

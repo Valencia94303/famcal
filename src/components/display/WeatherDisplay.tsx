@@ -14,6 +14,7 @@ interface WeatherData {
   isDay: boolean;
   high: number;
   low: number;
+  city: string | null;
 }
 
 // Map weather icon names to emojis
@@ -162,6 +163,11 @@ export function WeatherDisplay({ className = "" }: WeatherDisplayProps) {
         animate={{ opacity: 0.9 }}
         transition={{ delay: 0.3, duration: 0.6 }}
       >
+        {weather.city && (
+          <p className="text-[2.5vw] font-semibold text-white">
+            {weather.city}
+          </p>
+        )}
         <p className="text-[2.5vw] font-medium">
           {weather.condition}
         </p>
