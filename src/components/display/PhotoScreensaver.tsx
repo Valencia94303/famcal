@@ -125,18 +125,24 @@ export function PhotoScreensaver({ children, photoInterval }: PhotoScreensaverPr
         transition={{ delay: 0.5, duration: 0.5 }}
         style={{
           transformOrigin: corner.origin,
-          width: "35vw",
-          maxHeight: "45vh",
         }}
       >
         <div
-          className="backdrop-blur-xl bg-black/40 rounded-3xl overflow-hidden shadow-2xl"
+          className="backdrop-blur-xl bg-black/50 rounded-3xl shadow-2xl overflow-hidden"
           style={{
-            transform: "scale(0.5)",
-            transformOrigin: corner.origin,
+            width: "40vw",
+            height: "40vh",
           }}
         >
-          <div className="pointer-events-none" style={{ width: "70vw" }}>
+          <div
+            className="pointer-events-none [&>div]:!bg-none [&_.absolute]:!opacity-0"
+            style={{
+              transform: "scale(0.4)",
+              transformOrigin: "top left",
+              width: "100vw",
+              height: "100vh",
+            }}
+          >
             {children}
           </div>
         </div>
