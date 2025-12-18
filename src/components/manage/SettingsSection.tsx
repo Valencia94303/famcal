@@ -464,7 +464,7 @@ export function SettingsSection() {
                 <ul className="text-xs text-indigo-700 space-y-1 list-disc list-inside">
                   <li>Photos display full-screen with Ken Burns effect</li>
                   <li>Mini dashboard shows in a random corner</li>
-                  <li>Full dashboard appears at <span className="font-semibold">:25-:29</span> and <span className="font-semibold">:55-:59</span> each hour</li>
+                  <li>Full dashboard appears at <span className="font-semibold">:25-:35</span> and <span className="font-semibold">:55-:05</span> each hour</li>
                   <li>Dashboard interruptions only between <span className="font-semibold">6 AM - Midnight</span></li>
                   <li>Outside those hours: photos only (no interruptions)</li>
                 </ul>
@@ -516,7 +516,7 @@ export function SettingsSection() {
                 <p className="text-sm text-gray-600">
                   Photos will cycle every{" "}
                   <span className="font-bold text-indigo-600">{screensaverInterval} seconds</span>
-                  {" "}with the full dashboard appearing for 5 minutes before each half-hour (6 AM - Midnight).
+                  {" "}with the full dashboard appearing for 10 minutes around each half-hour (6 AM - Midnight).
                 </p>
               </div>
             </>

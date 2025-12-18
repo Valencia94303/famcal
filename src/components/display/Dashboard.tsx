@@ -103,7 +103,7 @@ export function Dashboard() {
   }, [headerMode, headerAlternateInterval]);
 
   // Check if dashboard should show (interruption mode)
-  // Dashboard shows at :25-:29 and :55-:59 between 6 AM and midnight
+  // Dashboard shows at :25-:35 and :55-:05 between 6 AM and midnight
   // Photos show at all other times when photo mode is enabled
   const checkDisplayMode = useCallback(() => {
     if (!photoModeEnabled) {
@@ -118,8 +118,8 @@ export function Dashboard() {
     // Dashboard hours: 6 AM (6) to midnight (0), so hour >= 6
     const isDashboardHours = hour >= 6;
 
-    // Dashboard shows 5 minutes before each half-hour: :25-:29 and :55-:59
-    const isDashboardMinutes = (minute >= 25 && minute <= 29) || (minute >= 55 && minute <= 59);
+    // Dashboard shows 10 minutes around each half-hour: :25-:35 and :55-:05
+    const isDashboardMinutes = (minute >= 25 && minute <= 35) || (minute >= 55) || (minute <= 5);
 
     // Show dashboard only during dashboard hours AND dashboard minutes
     // Otherwise show photos
