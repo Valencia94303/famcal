@@ -12,10 +12,8 @@ interface Settings {
   headerAlternateInterval: number;
   weatherLat: number | null;
   weatherLon: number | null;
-  // Screensaver settings
+  // Photo Mode settings
   screensaverEnabled: boolean;
-  screensaverStartHour: number;
-  screensaverEndHour: number;
   screensaverPhotoPath: string;
   screensaverInterval: number;
 }
@@ -34,10 +32,8 @@ export function SettingsSection() {
   const [headerAlternateInterval, setHeaderAlternateInterval] = useState(30);
   const [weatherLat, setWeatherLat] = useState<string>("");
   const [weatherLon, setWeatherLon] = useState<string>("");
-  // Screensaver state
+  // Photo Mode state
   const [screensaverEnabled, setScreensaverEnabled] = useState(false);
-  const [screensaverStartHour, setScreensaverStartHour] = useState(18);
-  const [screensaverEndHour, setScreensaverEndHour] = useState(23);
   const [screensaverPhotoPath, setScreensaverPhotoPath] = useState("/home/pi/famcal-photos");
   const [screensaverInterval, setScreensaverInterval] = useState(15);
 
@@ -58,10 +54,8 @@ export function SettingsSection() {
         setHeaderAlternateInterval(data.settings.headerAlternateInterval || 30);
         setWeatherLat(data.settings.weatherLat?.toString() || "");
         setWeatherLon(data.settings.weatherLon?.toString() || "");
-        // Screensaver settings
+        // Photo Mode settings
         setScreensaverEnabled(data.settings.screensaverEnabled || false);
-        setScreensaverStartHour(data.settings.screensaverStartHour ?? 18);
-        setScreensaverEndHour(data.settings.screensaverEndHour ?? 23);
         setScreensaverPhotoPath(data.settings.screensaverPhotoPath || "/home/pi/famcal-photos");
         setScreensaverInterval(data.settings.screensaverInterval ?? 15);
       }
@@ -87,10 +81,8 @@ export function SettingsSection() {
           headerAlternateInterval,
           weatherLat: weatherLat ? parseFloat(weatherLat) : null,
           weatherLon: weatherLon ? parseFloat(weatherLon) : null,
-          // Screensaver settings
+          // Photo Mode settings
           screensaverEnabled,
-          screensaverStartHour,
-          screensaverEndHour,
           screensaverPhotoPath,
           screensaverInterval,
         }),
@@ -415,10 +407,10 @@ export function SettingsSection() {
         </div>
       </div>
 
-      {/* Screensaver Settings */}
+      {/* Photo Mode Settings */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 bg-gray-50 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-800">Photo Screensaver</h3>
+          <h3 className="font-semibold text-gray-800">Photo Mode</h3>
         </div>
 
         <div className="p-4 space-y-4">
@@ -426,10 +418,10 @@ export function SettingsSection() {
           <div className="flex items-center justify-between">
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Enable Screensaver
+                Enable Photo Mode
               </label>
               <p className="text-xs text-gray-500">
-                Show photo slideshow during configured hours
+                Photos as background with mini dashboard in corner
               </p>
             </div>
             <button
@@ -448,44 +440,16 @@ export function SettingsSection() {
 
           {screensaverEnabled && (
             <>
-              {/* Active Hours */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Active Hours
-                </label>
-                <p className="text-xs text-gray-500 mb-2">
-                  Screensaver will activate during these hours
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Start Hour</label>
-                    <select
-                      value={screensaverStartHour}
-                      onChange={(e) => setScreensaverStartHour(parseInt(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                      {Array.from({ length: 24 }, (_, i) => (
-                        <option key={i} value={i}>
-                          {i === 0 ? "12 AM" : i < 12 ? `${i} AM` : i === 12 ? "12 PM" : `${i - 12} PM`}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">End Hour</label>
-                    <select
-                      value={screensaverEndHour}
-                      onChange={(e) => setScreensaverEndHour(parseInt(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                      {Array.from({ length: 24 }, (_, i) => (
-                        <option key={i} value={i}>
-                          {i === 0 ? "12 AM" : i < 12 ? `${i} AM` : i === 12 ? "12 PM" : `${i - 12} PM`}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+              {/* How it works */}
+              <div className="bg-indigo-50 rounded-xl p-4 space-y-2">
+                <p className="text-sm font-medium text-indigo-800">📸 How Photo Mode Works</p>
+                <ul className="text-xs text-indigo-700 space-y-1 list-disc list-inside">
+                  <li>Photos display full-screen with Ken Burns effect</li>
+                  <li>Mini dashboard shows in a random corner</li>
+                  <li>Full dashboard appears at <span className="font-semibold">:25-:29</span> and <span className="font-semibold">:55-:59</span> each hour</li>
+                  <li>Dashboard interruptions only between <span className="font-semibold">6 AM - Midnight</span></li>
+                  <li>Outside those hours: photos only (no interruptions)</li>
+                </ul>
               </div>
 
               {/* Photo Folder */}
@@ -532,16 +496,9 @@ export function SettingsSection() {
               {/* Preview info */}
               <div className="bg-gray-50 rounded-xl p-4">
                 <p className="text-sm text-gray-600">
-                  Screensaver will be active from{" "}
-                  <span className="font-bold text-indigo-600">
-                    {screensaverStartHour === 0 ? "12 AM" : screensaverStartHour < 12 ? `${screensaverStartHour} AM` : screensaverStartHour === 12 ? "12 PM" : `${screensaverStartHour - 12} PM`}
-                  </span>
-                  {" "}to{" "}
-                  <span className="font-bold text-indigo-600">
-                    {screensaverEndHour === 0 ? "12 AM" : screensaverEndHour < 12 ? `${screensaverEndHour} AM` : screensaverEndHour === 12 ? "12 PM" : `${screensaverEndHour - 12} PM`}
-                  </span>
-                  , showing photos every{" "}
-                  <span className="font-bold text-indigo-600">{screensaverInterval} seconds</span>.
+                  Photos will cycle every{" "}
+                  <span className="font-bold text-indigo-600">{screensaverInterval} seconds</span>
+                  {" "}with the full dashboard appearing for 5 minutes before each half-hour (6 AM - Midnight).
                 </p>
               </div>
             </>

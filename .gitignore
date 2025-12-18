@@ -25,6 +25,13 @@
 *.pem
 *.db
 
+# IDE
+.idea/
+*.iml
+
+# test data
+/test-photos/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
