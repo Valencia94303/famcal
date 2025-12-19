@@ -46,8 +46,11 @@ Meet the **Garcia Family** from San Jose, California:
 #### Habits Widget
 > "Beyond chores, we track daily habits - brushing teeth, reading for 20 minutes, practicing piano. These also earn points and help build good routines."
 
+#### Meals Widget
+> "Today's meal plan - the whole family can see what's for breakfast, lunch, and dinner. Today it's a Mexican food day: Chilaquiles for breakfast, Carnitas tacos for lunch, and Enchiladas Suizas for dinner. No more 'what's for dinner?' questions!"
+
 #### Points Leaderboard
-> "This shows each child's point balance. Ethan is currently at 175 points, Lily has 120. There's a friendly competition element, but it's really about personal progress."
+> "This shows each child's point balance. Ethan has 347 points - he's been saving for a new video game which costs 500. Lily has 168 points after treating herself to ice cream last week. There's a friendly competition element, but it's really about personal progress and learning to save."
 
 #### Shopping List
 > "Organized by store - Costco, Target, Walmart. When Mom notices they're low on dog food or the kids need school supplies, it goes on the list. Simple and visual."
