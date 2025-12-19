@@ -179,5 +179,56 @@ Transaction logged with approver info
 
 ---
 
+## 7. Database Seeding for Testing
+
+### Current State
+- Fresh installs have empty database
+- Manual data entry required for testing
+- Time-consuming to set up test scenarios
+
+### Proposed Enhancement
+Create a database seed script with comprehensive test data.
+
+#### Seed Data to Include
+
+| Feature | Test Data |
+|---------|-----------|
+| Family Members | 2 parents, 2-3 kids with different colors |
+| Chores | Daily, weekly, custom recurrence examples |
+| Habits | Morning/evening routines, health habits |
+| Tasks | Various priorities and due dates |
+| Shopping | Items for different stores |
+| Schedule | Daily routine items |
+| Rewards | Point-based and cash rewards |
+| Points | Sample transactions for each kid |
+
+#### Implementation
+
+```bash
+# Usage
+npx prisma db seed
+
+# Or via npm script
+npm run seed
+```
+
+#### Seed Script Location
+```
+prisma/seed.ts
+```
+
+#### Benefits
+- Faster testing setup
+- Consistent test scenarios
+- Demo mode for showcasing
+- Development environment parity
+
+#### Options
+- `--demo` - Family-friendly demo data
+- `--test` - Edge cases and stress test data
+- `--clean` - Clear existing data first
+
+---
+
 *Document created: December 2024*
 *Status: Pending discussion*
