@@ -54,20 +54,19 @@ export function PinEntry({
     }
   }, [locked, isLoading]);
 
-  const handleSubmit = useCallback(async () => {
-    if (pin.length >= 4 && !locked && !isLoading) {
-      await onSubmit(pin);
+  const handleSubmit = useCallback(async (pinToSubmit: string) => {
+    if (pinToSubmit.length >= 4 && !locked && !isLoading) {
+      await onSubmit(pinToSubmit);
       setPin("");
     }
-  }, [pin, locked, isLoading, onSubmit]);
+  }, [locked, isLoading, onSubmit]);
 
-  // Auto-submit when 4-6 digits entered
+  // Auto-submit when 4 digits entered (capture pin value in closure)
   useEffect(() => {
-    if (pin.length === 4 || pin.length === 5 || pin.length === 6) {
+    if (pin.length === 4) {
+      const currentPin = pin; // Capture current value
       const timer = setTimeout(() => {
-        if (pin.length >= 4) {
-          handleSubmit();
-        }
+        handleSubmit(currentPin);
       }, 300);
       return () => clearTimeout(timer);
     }
@@ -83,13 +82,13 @@ export function PinEntry({
       } else if (e.key === "Backspace") {
         handleBackspace();
       } else if (e.key === "Enter" && pin.length >= 4) {
-        handleSubmit();
+        handleSubmit(pin);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleDigitPress, handleBackspace, handleSubmit, locked, isLoading, pin.length]);
+  }, [handleDigitPress, handleBackspace, handleSubmit, locked, isLoading, pin]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
