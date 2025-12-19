@@ -76,7 +76,22 @@ export function PointsDisplay({ theme }: PointsDisplayProps) {
   }
 
   if (balances.length === 0) {
-    return null; // Don't show if no children
+    return (
+      <div className={`${theme.cardBg} rounded-3xl p-6 shadow-2xl shadow-black/10`}>
+        <h2 className={`text-[1.8vw] font-bold ${theme.textPrimary} mb-4`}>
+          Points Leaderboard
+        </h2>
+        <div className="flex flex-col items-center justify-center py-8">
+          <span className="text-[3vw] mb-3">⭐</span>
+          <p className={`text-[1.2vw] ${theme.textMuted} text-center`}>
+            No points yet
+          </p>
+          <p className={`text-[0.9vw] ${theme.textMuted} text-center mt-1`}>
+            Complete chores to earn points!
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
