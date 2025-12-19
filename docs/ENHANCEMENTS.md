@@ -375,5 +375,60 @@ model FamilyMember {
 
 ---
 
+## 10. Automatic Calendar Sync
+
+### Current State
+- Calendar only syncs when manually pressing "Sync" button in `/setup`
+- Dashboard refreshes from local database every 5 minutes
+- New Google Calendar events don't appear until manual sync
+
+### Proposed Enhancement
+Add automatic background sync from Google Calendar on a schedule.
+
+#### Implementation
+
+**Option A: Server-Side Interval**
+- Background job syncs every 15 minutes
+- Runs regardless of whether dashboard is open
+- More reliable but requires persistent process
+
+**Option B: Client-Side Trigger**
+- Dashboard triggers sync API every 15 minutes
+- Simpler implementation
+- Only syncs when dashboard is displayed
+
+#### API Rate Limits
+Google Calendar API allows 1,000,000 queries/day:
+- 15-minute sync = 96 queries/day
+- 5-minute sync = 288 queries/day
+- 1-minute sync = 1,440 queries/day
+
+**Conclusion**: 15-minute intervals are perfectly safe.
+
+#### Settings
+Add to Settings UI:
+- Auto-sync toggle (on/off)
+- Sync interval dropdown (5, 10, 15, 30 minutes)
+- Last sync timestamp display
+- Manual sync button (keep existing)
+
+#### Database Changes
+```prisma
+model Settings {
+  // Existing fields...
+  calendarAutoSync      Boolean @default(true)
+  calendarSyncInterval  Int     @default(15)  // minutes
+  calendarLastSync      DateTime?
+}
+```
+
+#### Implementation Notes
+- Show "Last synced: X minutes ago" on dashboard
+- Visual indicator during sync (subtle spinner)
+- Error handling if Google token expires
+- Don't sync if no calendar connected
+
+---
+
 *Document created: December 2024*
 *Status: Pending discussion*
