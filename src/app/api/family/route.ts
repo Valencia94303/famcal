@@ -29,7 +29,7 @@ export async function GET() {
 // POST create new family member
 export async function POST(request: Request) {
   try {
-    const { name, avatar, color, role, email } = await request.json();
+    const { name, avatar, avatarType, color, role, email, birthday } = await request.json();
 
     if (!name || !color) {
       return NextResponse.json(
@@ -42,9 +42,11 @@ export async function POST(request: Request) {
       data: {
         name,
         avatar: avatar || name[0].toUpperCase(),
+        avatarType: avatarType || "emoji",
         color,
         role: role || "CHILD",
         email: email || null,
+        birthday: birthday ? new Date(birthday) : null,
       },
     });
 

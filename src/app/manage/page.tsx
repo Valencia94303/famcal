@@ -2,14 +2,18 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MobileNav, TabType, PointsSection, RewardsSection, SettingsSection, TasksSection, ShoppingSection, HabitsSection, ScheduleSection, PhotosSection } from "@/components/manage";
+import { MobileNav, TabType, PointsSection, RewardsSection, SettingsSection, TasksSection, ShoppingSection, HabitsSection, ScheduleSection, AuditLogSection } from "@/components/manage";
+import { AvatarPicker } from "@/components/manage/AvatarPicker";
+import { PinGate } from "@/components/auth/PinGate";
 
 interface FamilyMember {
   id: string;
   name: string;
-  avatar: string;
+  avatar: string | null;
+  avatarType: string;
   color: string;
   role: string;
+  birthday: string | null;
 }
 
 interface Chore {
@@ -53,6 +57,10 @@ export default function ManagePage() {
   const [memberName, setMemberName] = useState("");
   const [memberColor, setMemberColor] = useState(COLORS[0]);
   const [memberRole, setMemberRole] = useState("CHILD");
+  const [memberAvatar, setMemberAvatar] = useState<string | null>(null);
+  const [memberAvatarType, setMemberAvatarType] = useState<"emoji" | "library" | "custom">("emoji");
+  const [memberBirthday, setMemberBirthday] = useState("");
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
 
   // Chore form state
@@ -94,26 +102,26 @@ export default function ManagePage() {
     if (!memberName.trim()) return;
 
     try {
+      const memberData = {
+        name: memberName,
+        color: memberColor,
+        role: memberRole,
+        avatar: memberAvatar || memberName[0].toUpperCase(),
+        avatarType: memberAvatarType,
+        birthday: memberBirthday ? new Date(memberBirthday).toISOString() : null,
+      };
+
       if (editingMember) {
         await fetch(`/api/family/${editingMember.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: memberName,
-            color: memberColor,
-            role: memberRole,
-            avatar: memberName[0].toUpperCase(),
-          }),
+          body: JSON.stringify(memberData),
         });
       } else {
         await fetch("/api/family", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: memberName,
-            color: memberColor,
-            role: memberRole,
-          }),
+          body: JSON.stringify(memberData),
         });
       }
       resetMemberForm();
@@ -138,6 +146,9 @@ export default function ManagePage() {
     setMemberName(member.name);
     setMemberColor(member.color);
     setMemberRole(member.role);
+    setMemberAvatar(member.avatar);
+    setMemberAvatarType(member.avatarType as "emoji" | "library" | "custom");
+    setMemberBirthday(member.birthday ? member.birthday.split("T")[0] : "");
     setShowMemberForm(true);
   };
 
@@ -147,6 +158,16 @@ export default function ManagePage() {
     setMemberName("");
     setMemberColor(COLORS[0]);
     setMemberRole("CHILD");
+    setMemberAvatar(null);
+    setMemberAvatarType("emoji");
+    setMemberBirthday("");
+    setShowAvatarPicker(false);
+  };
+
+  const handleAvatarSelect = (avatar: string, type: "emoji" | "library" | "custom") => {
+    setMemberAvatar(avatar);
+    setMemberAvatarType(type);
+    setShowAvatarPicker(false);
   };
 
   // Chore functions
@@ -250,6 +271,7 @@ export default function ManagePage() {
   };
 
   return (
+    <PinGate>
     <div className="fixed inset-0 bg-gradient-to-br from-slate-100 to-slate-200 overflow-y-auto pb-32">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-slate-200 px-4 py-3">
@@ -359,6 +381,44 @@ export default function ManagePage() {
                                 Child
                               </button>
                             </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-600 mb-2">
+                              Avatar
+                            </label>
+                            <button
+                              onClick={() => setShowAvatarPicker(true)}
+                              className="flex items-center gap-3 px-4 py-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors w-full"
+                            >
+                              <div
+                                className="w-12 h-12 rounded-full flex items-center justify-center text-2xl"
+                                style={{ backgroundColor: memberColor + "30" }}
+                              >
+                                {memberAvatarType === "custom" && memberAvatar ? (
+                                  <img
+                                    src={memberAvatar}
+                                    alt="Avatar"
+                                    className="w-12 h-12 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  memberAvatar || memberName?.[0]?.toUpperCase() || "?"
+                                )}
+                              </div>
+                              <span className="text-slate-600">
+                                {memberAvatar ? "Change Avatar" : "Choose Avatar"}
+                              </span>
+                            </button>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-600 mb-2">
+                              Birthday (optional)
+                            </label>
+                            <input
+                              type="date"
+                              value={memberBirthday}
+                              onChange={(e) => setMemberBirthday(e.target.value)}
+                              className="w-full px-4 py-3 rounded-xl border border-slate-200 text-base min-h-[48px]"
+                            />
                           </div>
                           <div className="flex gap-2">
                             <button
@@ -733,18 +793,6 @@ export default function ManagePage() {
               </motion.div>
             )}
 
-            {/* Photos Tab */}
-            {tab === "photos" && (
-              <motion.div
-                key="photos"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-              >
-                <PhotosSection onDataChange={fetchData} />
-              </motion.div>
-            )}
-
             {/* Rewards Tab */}
             {tab === "rewards" && (
               <motion.div
@@ -769,6 +817,18 @@ export default function ManagePage() {
               </motion.div>
             )}
 
+            {/* Audit Tab */}
+            {tab === "audit" && (
+              <motion.div
+                key="audit"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+              >
+                <AuditLogSection />
+              </motion.div>
+            )}
+
             {/* Settings Tab */}
             {tab === "settings" && (
               <motion.div
@@ -790,6 +850,18 @@ export default function ManagePage() {
         onTabChange={setTab}
         pendingRedemptions={pendingRedemptions}
       />
+
+      {/* Avatar Picker Modal */}
+      {showAvatarPicker && (
+        <AvatarPicker
+          memberId={editingMember?.id || "new"}
+          currentAvatar={memberAvatar}
+          currentType={memberAvatarType}
+          onSelect={handleAvatarSelect}
+          onClose={() => setShowAvatarPicker(false)}
+        />
+      )}
     </div>
+    </PinGate>
   );
 }

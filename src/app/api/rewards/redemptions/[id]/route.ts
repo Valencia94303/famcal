@@ -1,9 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requirePermission, getAuthContext, getClientInfo } from "@/lib/api-auth";
+import { createAuditLog } from "@/lib/audit";
 
 // GET single redemption
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -35,11 +37,17 @@ export async function GET(
   }
 }
 
-// PUT approve or deny redemption
+// PUT approve or deny redemption (requires rewards:approve permission)
 export async function PUT(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Check permission
+  const permissionError = await requirePermission(request, "rewards:approve");
+  if (permissionError) {
+    return permissionError;
+  }
+
   try {
     const { id } = await params;
     const { status, approvedById, denialReason } = await request.json();
@@ -54,7 +62,7 @@ export async function PUT(
     // Get the redemption
     const redemption = await prisma.rewardRedemption.findUnique({
       where: { id },
-      include: { requestedBy: true },
+      include: { requestedBy: true, reward: true },
     });
 
     if (!redemption) {
@@ -71,8 +79,14 @@ export async function PUT(
       );
     }
 
+    // Get auth context and client info
+    const authContext = await getAuthContext(request);
+    const clientInfo = getClientInfo(request);
+    const performerId = approvedById || authContext.memberId;
+    let performerName = authContext.memberName;
+
     // Verify approver is a PARENT (if provided)
-    if (approvedById) {
+    if (approvedById && approvedById !== authContext.memberId) {
       const approver = await prisma.familyMember.findUnique({
         where: { id: approvedById },
       });
@@ -83,9 +97,18 @@ export async function PUT(
           { status: 403 }
         );
       }
+      performerName = approver.name;
     }
 
+    // Store old values for audit
+    const oldValue = {
+      status: redemption.status,
+      approvedById: redemption.approvedById,
+      approvedAt: redemption.approvedAt,
+    };
+
     // If approving, verify the requester still has enough points
+    let pointTransactionId: string | null = null;
     if (status === "APPROVED") {
       const balanceResult = await prisma.pointTransaction.aggregate({
         where: { familyMemberId: redemption.requestedById },
@@ -105,14 +128,31 @@ export async function PUT(
         );
       }
 
-      // Deduct points
-      await prisma.pointTransaction.create({
+      // Deduct points with audit trail
+      const pointTransaction = await prisma.pointTransaction.create({
         data: {
           familyMemberId: redemption.requestedById,
           amount: -redemption.pointsSpent,
           type: "REDEMPTION",
-          description: `Redeemed: ${redemption.pointsSpent} points`,
+          description: `Redeemed: ${redemption.reward.name}`,
+          performedById: performerId,
+          ipAddress: clientInfo.ipAddress,
+          userAgent: clientInfo.userAgent,
         },
+      });
+      pointTransactionId = pointTransaction.id;
+
+      // Log the point deduction
+      await createAuditLog({
+        action: "DEDUCT_POINTS",
+        entityType: "POINTS",
+        entityId: pointTransaction.id,
+        oldValue: { balance },
+        newValue: { balance: balance - redemption.pointsSpent, deductedAmount: redemption.pointsSpent },
+        description: `Deducted ${redemption.pointsSpent} points from ${redemption.requestedBy.name} for reward: ${redemption.reward.name}`,
+        request,
+        performedBy: performerId || undefined,
+        performedByName: performerName || undefined,
       });
     }
 
@@ -121,7 +161,7 @@ export async function PUT(
       where: { id },
       data: {
         status,
-        approvedById: approvedById || null,
+        approvedById: performerId || null,
         approvedAt: new Date(),
         denialReason: status === "DENIED" ? denialReason : null,
       },
@@ -130,6 +170,26 @@ export async function PUT(
         requestedBy: true,
         approvedBy: true,
       },
+    });
+
+    // Create audit log for the redemption approval/denial
+    await createAuditLog({
+      action: status === "APPROVED" ? "APPROVE_REDEMPTION" : "DENY_REDEMPTION",
+      entityType: "REDEMPTION",
+      entityId: id,
+      oldValue,
+      newValue: {
+        status: updatedRedemption.status,
+        approvedById: updatedRedemption.approvedById,
+        approvedAt: updatedRedemption.approvedAt,
+        denialReason: updatedRedemption.denialReason,
+      },
+      description: status === "APPROVED"
+        ? `Approved redemption of ${redemption.reward.name} for ${redemption.requestedBy.name}`
+        : `Denied redemption of ${redemption.reward.name} for ${redemption.requestedBy.name}: ${denialReason || "No reason provided"}`,
+      request,
+      performedBy: performerId || undefined,
+      performedByName: performerName || undefined,
     });
 
     return NextResponse.json({ redemption: updatedRedemption });

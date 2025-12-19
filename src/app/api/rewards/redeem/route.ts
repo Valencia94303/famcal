@@ -1,8 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/api-auth";
+import { createAuditLog } from "@/lib/audit";
 
-// POST request a reward redemption
-export async function POST(request: Request) {
+// POST request a reward redemption (requires rewards:request permission)
+export async function POST(request: NextRequest) {
+  // Check permission
+  const permissionError = await requirePermission(request, "rewards:request");
+  if (permissionError) {
+    return permissionError;
+  }
+
   try {
     const { rewardId, requestedById, customPointsAmount } = await request.json();
 
@@ -97,6 +105,23 @@ export async function POST(request: Request) {
         reward: true,
         requestedBy: true,
       },
+    });
+
+    // Create audit log
+    await createAuditLog({
+      action: "REQUEST_REDEMPTION",
+      entityType: "REDEMPTION",
+      entityId: redemption.id,
+      newValue: {
+        rewardId,
+        rewardName: reward.name,
+        pointsSpent: pointsToSpend,
+        status: "PENDING",
+      },
+      description: `${requester.name} requested to redeem ${reward.name} for ${pointsToSpend} points`,
+      request,
+      performedBy: requestedById,
+      performedByName: requester.name,
     });
 
     return NextResponse.json({ redemption }, { status: 201 });

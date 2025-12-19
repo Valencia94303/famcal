@@ -6,16 +6,18 @@ import { motion, AnimatePresence } from "framer-motion";
 interface FamilyMember {
   id: string;
   name: string;
-  avatar: string;
+  avatar: string | null;
+  avatarType: string;
   color: string;
   role: string;
+  birthday: string | null;
 }
 
 interface PointBalance {
   memberId: string;
   memberName: string;
   memberColor: string;
-  memberAvatar: string;
+  memberAvatar: string | null;
   balance: number;
   lifetimeEarned: number;
   lifetimeSpent: number;

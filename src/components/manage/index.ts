@@ -7,4 +7,4 @@ export { TasksSection } from "./TasksSection";
 export { ShoppingSection } from "./ShoppingSection";
 export { HabitsSection } from "./HabitsSection";
 export { ScheduleSection } from "./ScheduleSection";
-export { PhotosSection } from "./PhotosSection";
+export { AuditLogSection } from "./AuditLogSection";

@@ -87,6 +87,26 @@ export function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  // Automatic calendar sync every 15 minutes
+  useEffect(() => {
+    const syncCalendar = async () => {
+      try {
+        await fetch("/api/calendar/sync", { method: "POST" });
+        console.log("Calendar synced automatically");
+      } catch (error) {
+        console.error("Auto calendar sync failed:", error);
+      }
+    };
+
+    // Initial sync on mount
+    syncCalendar();
+
+    // Sync every 15 minutes
+    const syncInterval = setInterval(syncCalendar, 15 * 60 * 1000);
+
+    return () => clearInterval(syncInterval);
+  }, []);
+
   // Handle header mode alternation
   useEffect(() => {
     if (headerMode !== "alternate") {

@@ -46,16 +46,18 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const { name, avatar, color, role, email } = await request.json();
+    const { name, avatar, avatarType, color, role, email, birthday } = await request.json();
 
     const member = await prisma.familyMember.update({
       where: { id },
       data: {
         ...(name && { name }),
-        ...(avatar && { avatar }),
+        ...(avatar !== undefined && { avatar }),
+        ...(avatarType && { avatarType }),
         ...(color && { color }),
         ...(role && { role }),
         ...(email !== undefined && { email: email || null }),
+        ...(birthday !== undefined && { birthday: birthday ? new Date(birthday) : null }),
       },
     });
 

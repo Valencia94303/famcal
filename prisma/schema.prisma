@@ -64,14 +64,17 @@ model VerificationToken {
 // ============================================
 
 model FamilyMember {
-  id        String   @id @default(cuid())
-  name      String
-  avatar    String?  // Emoji or image URL
-  color     String   // Hex color for visual identification
-  role      String   @default("CHILD") // PARENT or CHILD
-  email     String?  @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String    @id @default(cuid())
+  name        String
+  displayName String?   // Optional display name override
+  avatar      String?   // Emoji, library reference, or custom image path
+  avatarType  String    @default("emoji") // "emoji" | "library" | "custom"
+  color       String    // Hex color for visual identification
+  role        String    @default("CHILD") // PARENT or CHILD
+  email       String?   @unique
+  birthday    DateTime? // For birthday reminders
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   assignedChores       ChoreAssignment[]
   completions          ChoreCompletion[]
@@ -79,6 +82,14 @@ model FamilyMember {
   redemptionsRequested RewardRedemption[] @relation("RedemptionRequester")
   redemptionsApproved  RewardRedemption[] @relation("RedemptionApprover")
   habitLogs            HabitLog[]
+}
+
+// Avatar library for pre-made avatars
+model AvatarLibrary {
+  id       String @id @default(cuid())
+  category String // "animals", "people", "fantasy", "objects"
+  name     String
+  imageUrl String // Path to image in /public/avatars/
 }
 
 model Chore {
@@ -189,7 +200,24 @@ model Settings {
   screensaverPhotoPath  String   @default("/home/pi/famcal-photos")
   screensaverInterval   Int      @default(15)           // seconds per photo
 
+  // PIN Authentication settings
+  pinEnabled        Boolean   @default(false)
+  adminPinHash      String?                             // bcrypt hash of admin PIN
+  pinFailedAttempts Int       @default(0)
+  pinLockedUntil    DateTime?                           // lockout until this time
+
   updatedAt DateTime @updatedAt
+}
+
+// PIN session for authenticated access to /manage
+model PinSession {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([expiresAt])
 }
 
 // ============================================
@@ -202,10 +230,15 @@ model PointTransaction {
   familyMember      FamilyMember @relation(fields: [familyMemberId], references: [id], onDelete: Cascade)
   familyMemberId    String
   amount            Int          // Positive = earned, negative = spent
-  type              String       // CHORE_COMPLETION, BONUS, REDEMPTION
+  type              String       // CHORE_COMPLETION, BONUS, REDEMPTION, DEDUCTION
   description       String?
   choreCompletionId String?      // Links to ChoreCompletion if earned from chore
   createdAt         DateTime     @default(now())
+
+  // Audit trail fields
+  performedById String?          // Who initiated this transaction (parent)
+  ipAddress     String?
+  userAgent     String?
 
   @@index([familyMemberId])
   @@index([createdAt])
@@ -347,10 +380,63 @@ model ScheduleItem {
 
 // Family photos for slideshow
 model FamilyPhoto {
-  id        String   @id @default(cuid())
-  url       String   // URL or path to photo
-  caption   String?
-  createdAt DateTime @default(now())
+  id                String    @id @default(cuid())
+  url               String    // URL or path to photo
+  caption           String?
+  createdAt         DateTime  @default(now())
+  // Optimization tracking
+  originalUrl       String?   // Path to archived original
+  optimized         Boolean   @default(false)
+  optimizedAt       DateTime?
+  sizeBytes         Int?      // Current file size
+  originalSizeBytes Int?      // Original file size before optimization
 
+  @@index([createdAt])
+  @@index([optimized])
+}
+
+// ============================================
+// Backup & Restore
+// ============================================
+
+model Backup {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  data        String   // JSON blob of all exportable data
+  version     String   @default("1.0")
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// ============================================
+// Audit Logging
+// ============================================
+
+// Audit trail for security-sensitive actions
+model AuditLog {
+  id          String   @id @default(cuid())
+  action      String   // Action type: AWARD_POINTS, DEDUCT_POINTS, APPROVE_REDEMPTION, etc.
+  entityType  String   // Entity affected: POINTS, REWARD, CHORE, MEMBER, SETTINGS
+  entityId    String   // ID of the affected entity
+  oldValue    String?  // JSON of previous value (if applicable)
+  newValue    String?  // JSON of new value (if applicable)
+  description String?  // Human-readable description
+
+  // Actor information
+  performedBy   String?  // Family member ID who performed the action
+  performedByName String? // Name of the performer (denormalized for history)
+
+  // Request context
+  ipAddress   String?
+  userAgent   String?
+
+  createdAt   DateTime @default(now())
+
+  @@index([action])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([performedBy])
   @@index([createdAt])
 }
