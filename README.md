@@ -26,10 +26,18 @@ See the [Raspberry Pi Deployment Guide](docs/DEPLOYMENT.md) for complete setup i
 **Quick Install:**
 ```bash
 # On your Raspberry Pi 5
+
+# 1. Install Node.js (if not already installed)
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# 2. Clone and build
 git clone https://github.com/Valencia94303/famcal.git
 cd famcal
 npm install
 npm run build
+
+# 3. Setup auto-start and kiosk mode
 sudo ./scripts/setup-autostart.sh
 sudo ./scripts/setup-kiosk.sh
 sudo reboot
