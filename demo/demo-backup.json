@@ -1,0 +1,593 @@
+{
+  "version": "1.0",
+  "exportedAt": "2024-12-19T00:00:00.000Z",
+  "description": "FamCal Demo - The Garcia Family",
+  "settings": {
+    "id": "singleton",
+    "displayName": "Garcia Family Dashboard",
+    "timezone": "America/Los_Angeles",
+    "showWeather": true,
+    "weatherLocation": "San Jose, CA",
+    "theme": "auto",
+    "carouselInterval": 30,
+    "carouselAnimation": "cycle",
+    "headerMode": "alternate",
+    "headerAlternateInterval": 30,
+    "screensaverEnabled": false,
+    "screensaverInterval": 15
+  },
+  "pointsSettings": {
+    "id": "singleton",
+    "cashConversionRate": 0.10,
+    "minCashoutPoints": 100
+  },
+  "familyMembers": [
+    {
+      "id": "dad-marcus",
+      "name": "Dad (Marcus)",
+      "avatar": "👨‍💻",
+      "color": "#3b82f6",
+      "role": "PARENT",
+      "email": null
+    },
+    {
+      "id": "mom-sofia",
+      "name": "Mom (Sofia)",
+      "avatar": "👩‍⚕️",
+      "color": "#a855f7",
+      "role": "PARENT",
+      "email": null
+    },
+    {
+      "id": "ethan",
+      "name": "Ethan",
+      "avatar": "⚽",
+      "color": "#22c55e",
+      "role": "CHILD",
+      "email": null
+    },
+    {
+      "id": "lily",
+      "name": "Lily",
+      "avatar": "🎨",
+      "color": "#f97316",
+      "role": "CHILD",
+      "email": null
+    }
+  ],
+  "chores": [
+    {
+      "id": "chore-make-bed",
+      "title": "Make Your Bed",
+      "description": "Straighten sheets, fluff pillows, make it look nice!",
+      "icon": "🛏️",
+      "points": 5,
+      "priority": "MEDIUM",
+      "recurrence": "DAILY",
+      "recurDays": "[\"MON\",\"TUE\",\"WED\",\"THU\",\"FRI\",\"SAT\",\"SUN\"]",
+      "recurTime": "07:30",
+      "isActive": true
+    },
+    {
+      "id": "chore-feed-max",
+      "title": "Feed Max",
+      "description": "Give Max his breakfast - 1 cup of kibble + fresh water",
+      "icon": "🐕",
+      "points": 10,
+      "priority": "HIGH",
+      "recurrence": "DAILY",
+      "recurDays": "[\"MON\",\"TUE\",\"WED\",\"THU\",\"FRI\",\"SAT\",\"SUN\"]",
+      "recurTime": "07:00",
+      "isActive": true
+    },
+    {
+      "id": "chore-pack-backpack",
+      "title": "Pack Backpack",
+      "description": "Check homework, pack lunch, water bottle, and library books",
+      "icon": "🎒",
+      "points": 5,
+      "priority": "HIGH",
+      "recurrence": "DAILY",
+      "recurDays": "[\"MON\",\"TUE\",\"WED\",\"THU\",\"FRI\"]",
+      "recurTime": "07:45",
+      "isActive": true
+    },
+    {
+      "id": "chore-trash",
+      "title": "Take Out Trash",
+      "description": "Empty all small trash cans into big bin, take to curb on Tuesday",
+      "icon": "🗑️",
+      "points": 15,
+      "priority": "MEDIUM",
+      "recurrence": "WEEKLY",
+      "recurDays": "[\"TUE\"]",
+      "recurTime": "18:00",
+      "isActive": true
+    },
+    {
+      "id": "chore-clean-room",
+      "title": "Clean Your Room",
+      "description": "Pick up toys, dirty clothes in hamper, vacuum floor",
+      "icon": "🧹",
+      "points": 20,
+      "priority": "MEDIUM",
+      "recurrence": "WEEKLY",
+      "recurDays": "[\"SAT\"]",
+      "recurTime": "10:00",
+      "isActive": true
+    },
+    {
+      "id": "chore-dishes",
+      "title": "Help Load Dishwasher",
+      "description": "Clear table and help load dishes after dinner",
+      "icon": "🍽️",
+      "points": 10,
+      "priority": "MEDIUM",
+      "recurrence": "DAILY",
+      "recurDays": "[\"MON\",\"TUE\",\"WED\",\"THU\",\"FRI\",\"SAT\",\"SUN\"]",
+      "recurTime": "19:00",
+      "isActive": true
+    },
+    {
+      "id": "chore-walk-max",
+      "title": "Walk Max",
+      "description": "Take Max for his afternoon walk around the block",
+      "icon": "🦮",
+      "points": 15,
+      "priority": "HIGH",
+      "recurrence": "DAILY",
+      "recurDays": "[\"MON\",\"TUE\",\"WED\",\"THU\",\"FRI\",\"SAT\",\"SUN\"]",
+      "recurTime": "16:30",
+      "isActive": true
+    },
+    {
+      "id": "chore-laundry",
+      "title": "Put Away Laundry",
+      "description": "Fold your clean clothes and put them away neatly",
+      "icon": "👕",
+      "points": 15,
+      "priority": "LOW",
+      "recurrence": "WEEKLY",
+      "recurDays": "[\"SUN\"]",
+      "recurTime": "11:00",
+      "isActive": true
+    },
+    {
+      "id": "chore-set-table",
+      "title": "Set the Table",
+      "description": "Plates, forks, knives, napkins, and cups for everyone",
+      "icon": "🍴",
+      "points": 5,
+      "priority": "MEDIUM",
+      "recurrence": "DAILY",
+      "recurDays": "[\"MON\",\"TUE\",\"WED\",\"THU\",\"FRI\",\"SAT\",\"SUN\"]",
+      "recurTime": "18:00",
+      "isActive": true
+    },
+    {
+      "id": "chore-water-plants",
+      "title": "Water the Plants",
+      "description": "Water all indoor plants and check the garden",
+      "icon": "🌱",
+      "points": 10,
+      "priority": "LOW",
+      "recurrence": "WEEKLY",
+      "recurDays": "[\"WED\",\"SAT\"]",
+      "recurTime": "09:00",
+      "isActive": true
+    }
+  ],
+  "choreAssignments": [
+    { "id": "assign-1", "choreId": "chore-make-bed", "assigneeId": "ethan", "rotationOrder": 0 },
+    { "id": "assign-2", "choreId": "chore-make-bed", "assigneeId": "lily", "rotationOrder": 1 },
+    { "id": "assign-3", "choreId": "chore-feed-max", "assigneeId": "ethan", "rotationOrder": 0 },
+    { "id": "assign-4", "choreId": "chore-pack-backpack", "assigneeId": "ethan", "rotationOrder": 0 },
+    { "id": "assign-5", "choreId": "chore-pack-backpack", "assigneeId": "lily", "rotationOrder": 1 },
+    { "id": "assign-6", "choreId": "chore-trash", "assigneeId": "ethan", "rotationOrder": 0 },
+    { "id": "assign-7", "choreId": "chore-clean-room", "assigneeId": "ethan", "rotationOrder": 0 },
+    { "id": "assign-8", "choreId": "chore-clean-room", "assigneeId": "lily", "rotationOrder": 1 },
+    { "id": "assign-9", "choreId": "chore-dishes", "assigneeId": "ethan", "rotationOrder": 0 },
+    { "id": "assign-10", "choreId": "chore-dishes", "assigneeId": "lily", "rotationOrder": 1 },
+    { "id": "assign-11", "choreId": "chore-walk-max", "assigneeId": "ethan", "rotationOrder": 0 },
+    { "id": "assign-12", "choreId": "chore-laundry", "assigneeId": "ethan", "rotationOrder": 0 },
+    { "id": "assign-13", "choreId": "chore-laundry", "assigneeId": "lily", "rotationOrder": 1 },
+    { "id": "assign-14", "choreId": "chore-set-table", "assigneeId": "lily", "rotationOrder": 0 },
+    { "id": "assign-15", "choreId": "chore-water-plants", "assigneeId": "lily", "rotationOrder": 0 }
+  ],
+  "rewards": [
+    {
+      "id": "reward-screen-time",
+      "name": "30 Min Extra Screen Time",
+      "description": "Bonus gaming or TV time after homework is done",
+      "pointsCost": 30,
+      "icon": "📱",
+      "isActive": true,
+      "isCashReward": false,
+      "cashValue": null
+    },
+    {
+      "id": "reward-movie-night",
+      "name": "Pick Movie Night Film",
+      "description": "You get to choose this week's family movie!",
+      "pointsCost": 75,
+      "icon": "🎬",
+      "isActive": true,
+      "isCashReward": false,
+      "cashValue": null
+    },
+    {
+      "id": "reward-dinner-choice",
+      "name": "Choose Dinner",
+      "description": "Pick what we have for dinner tonight (within reason!)",
+      "pointsCost": 50,
+      "icon": "🍕",
+      "isActive": true,
+      "isCashReward": false,
+      "cashValue": null
+    },
+    {
+      "id": "reward-ice-cream",
+      "name": "Ice Cream Trip",
+      "description": "Family trip to Cold Stone for a treat",
+      "pointsCost": 100,
+      "icon": "🍦",
+      "isActive": true,
+      "isCashReward": false,
+      "cashValue": null
+    },
+    {
+      "id": "reward-sleepover",
+      "name": "Friend Sleepover",
+      "description": "Host a sleepover with one friend",
+      "pointsCost": 200,
+      "icon": "🏠",
+      "isActive": true,
+      "isCashReward": false,
+      "cashValue": null
+    },
+    {
+      "id": "reward-video-game",
+      "name": "New Video Game",
+      "description": "Pick a new game (up to $30 value)",
+      "pointsCost": 500,
+      "icon": "🎮",
+      "isActive": true,
+      "isCashReward": false,
+      "cashValue": null
+    },
+    {
+      "id": "reward-arcade",
+      "name": "Arcade Trip",
+      "description": "Trip to Round1 with $20 game credits",
+      "pointsCost": 300,
+      "icon": "🕹️",
+      "isActive": true,
+      "isCashReward": false,
+      "cashValue": null
+    },
+    {
+      "id": "reward-stay-up",
+      "name": "Stay Up 30 Min Late",
+      "description": "Extra 30 minutes before bedtime on weekend",
+      "pointsCost": 40,
+      "icon": "🌙",
+      "isActive": true,
+      "isCashReward": false,
+      "cashValue": null
+    },
+    {
+      "id": "reward-cash",
+      "name": "Cash Out",
+      "description": "Convert points to real money: $1 per 100 points",
+      "pointsCost": 100,
+      "icon": "💵",
+      "isActive": true,
+      "isCashReward": true,
+      "cashValue": 1.00
+    },
+    {
+      "id": "reward-toy",
+      "name": "Small Toy / Art Supply",
+      "description": "Pick something special from Target (up to $15)",
+      "pointsCost": 250,
+      "icon": "🎁",
+      "isActive": true,
+      "isCashReward": false,
+      "cashValue": null
+    }
+  ],
+  "habits": [
+    {
+      "id": "habit-reading",
+      "name": "Read for 20 Minutes",
+      "icon": "📚",
+      "points": 10,
+      "frequency": "DAILY",
+      "isActive": true
+    },
+    {
+      "id": "habit-water",
+      "name": "Drink 5 Glasses of Water",
+      "icon": "💧",
+      "points": 5,
+      "frequency": "DAILY",
+      "isActive": true
+    },
+    {
+      "id": "habit-brush-am",
+      "name": "Brush Teeth (Morning)",
+      "icon": "🦷",
+      "points": 5,
+      "frequency": "DAILY",
+      "isActive": true
+    },
+    {
+      "id": "habit-brush-pm",
+      "name": "Brush Teeth (Night)",
+      "icon": "🦷",
+      "points": 5,
+      "frequency": "DAILY",
+      "isActive": true
+    },
+    {
+      "id": "habit-piano",
+      "name": "Piano Practice (15 min)",
+      "icon": "🎹",
+      "points": 15,
+      "frequency": "DAILY",
+      "isActive": true
+    },
+    {
+      "id": "habit-kindness",
+      "name": "Do Something Kind",
+      "icon": "💝",
+      "points": 10,
+      "frequency": "DAILY",
+      "isActive": true
+    },
+    {
+      "id": "habit-exercise",
+      "name": "30 Min Active Play",
+      "icon": "🏃",
+      "points": 10,
+      "frequency": "DAILY",
+      "isActive": true
+    },
+    {
+      "id": "habit-no-screens",
+      "name": "Screen-Free Hour",
+      "icon": "📵",
+      "points": 15,
+      "frequency": "DAILY",
+      "isActive": true
+    }
+  ],
+  "scheduleItems": [
+    {
+      "id": "sched-wakeup",
+      "title": "Wake Up Time",
+      "time": "06:45",
+      "icon": "☀️",
+      "days": "[\"MON\",\"TUE\",\"WED\",\"THU\",\"FRI\"]",
+      "isActive": true
+    },
+    {
+      "id": "sched-breakfast",
+      "title": "Breakfast",
+      "time": "07:00",
+      "icon": "🥣",
+      "days": "[\"MON\",\"TUE\",\"WED\",\"THU\",\"FRI\",\"SAT\",\"SUN\"]",
+      "isActive": true
+    },
+    {
+      "id": "sched-school-drop",
+      "title": "School Drop-off",
+      "time": "08:00",
+      "icon": "🚗",
+      "days": "[\"MON\",\"TUE\",\"WED\",\"THU\",\"FRI\"]",
+      "isActive": true
+    },
+    {
+      "id": "sched-dad-standup",
+      "title": "Dad's Team Standup",
+      "time": "09:30",
+      "icon": "💻",
+      "days": "[\"MON\",\"TUE\",\"WED\",\"THU\",\"FRI\"]",
+      "isActive": true
+    },
+    {
+      "id": "sched-school-pickup",
+      "title": "School Pickup",
+      "time": "15:15",
+      "icon": "🏫",
+      "days": "[\"MON\",\"TUE\",\"WED\",\"THU\",\"FRI\"]",
+      "isActive": true
+    },
+    {
+      "id": "sched-homework",
+      "title": "Homework Time",
+      "time": "16:00",
+      "icon": "📝",
+      "days": "[\"MON\",\"TUE\",\"WED\",\"THU\",\"FRI\"]",
+      "isActive": true
+    },
+    {
+      "id": "sched-soccer",
+      "title": "Ethan Soccer Practice",
+      "time": "17:00",
+      "icon": "⚽",
+      "days": "[\"TUE\",\"THU\"]",
+      "isActive": true
+    },
+    {
+      "id": "sched-gymnastics",
+      "title": "Lily Gymnastics",
+      "time": "17:30",
+      "icon": "🤸",
+      "days": "[\"MON\",\"WED\"]",
+      "isActive": true
+    },
+    {
+      "id": "sched-dinner",
+      "title": "Family Dinner",
+      "time": "18:30",
+      "icon": "🍽️",
+      "days": "[\"MON\",\"TUE\",\"WED\",\"THU\",\"FRI\",\"SAT\",\"SUN\"]",
+      "isActive": true
+    },
+    {
+      "id": "sched-game-night",
+      "title": "Family Game Night",
+      "time": "19:30",
+      "icon": "🎲",
+      "days": "[\"FRI\"]",
+      "isActive": true
+    },
+    {
+      "id": "sched-movie-night",
+      "title": "Movie Night",
+      "time": "19:00",
+      "icon": "🍿",
+      "days": "[\"SAT\"]",
+      "isActive": true
+    },
+    {
+      "id": "sched-bedtime-lily",
+      "title": "Lily Bedtime",
+      "time": "20:00",
+      "icon": "🌙",
+      "days": "[\"MON\",\"TUE\",\"WED\",\"THU\",\"SUN\"]",
+      "isActive": true
+    },
+    {
+      "id": "sched-bedtime-ethan",
+      "title": "Ethan Bedtime",
+      "time": "21:00",
+      "icon": "🌙",
+      "days": "[\"MON\",\"TUE\",\"WED\",\"THU\",\"SUN\"]",
+      "isActive": true
+    },
+    {
+      "id": "sched-soccer-game",
+      "title": "Ethan Soccer Game",
+      "time": "10:00",
+      "icon": "🏆",
+      "days": "[\"SAT\"]",
+      "isActive": true
+    },
+    {
+      "id": "sched-weekend-wakeup",
+      "title": "Weekend Wake Up",
+      "time": "08:00",
+      "icon": "😴",
+      "days": "[\"SAT\",\"SUN\"]",
+      "isActive": true
+    }
+  ],
+  "shoppingItems": [
+    { "id": "shop-1", "name": "Milk (2 gallons)", "quantity": 2, "unit": "gal", "store": "COSTCO", "checked": false, "notes": "Get whole milk" },
+    { "id": "shop-2", "name": "Bananas", "quantity": 2, "unit": "bunch", "store": "COSTCO", "checked": false, "notes": null },
+    { "id": "shop-3", "name": "Goldfish Crackers", "quantity": 1, "unit": "box", "store": "COSTCO", "checked": false, "notes": "For lunch boxes" },
+    { "id": "shop-4", "name": "Chicken Breast", "quantity": 4, "unit": "lbs", "store": "COSTCO", "checked": false, "notes": null },
+    { "id": "shop-5", "name": "String Cheese", "quantity": 1, "unit": "pack", "store": "COSTCO", "checked": false, "notes": "Kids favorite snack" },
+    { "id": "shop-6", "name": "Glue Sticks", "quantity": 6, "unit": "pack", "store": "TARGET", "checked": false, "notes": "For Lily's art projects" },
+    { "id": "shop-7", "name": "Composition Notebook", "quantity": 2, "unit": null, "store": "TARGET", "checked": false, "notes": "Ethan needs for science" },
+    { "id": "shop-8", "name": "Dog Food (Max)", "quantity": 1, "unit": "bag", "store": "TARGET", "checked": false, "notes": "Blue Buffalo brand" },
+    { "id": "shop-9", "name": "Soccer Socks", "quantity": 2, "unit": "pairs", "store": "TARGET", "checked": false, "notes": "White, kids large" },
+    { "id": "shop-10", "name": "Strawberries", "quantity": 1, "unit": "lb", "store": "WALMART", "checked": false, "notes": null },
+    { "id": "shop-11", "name": "Bread", "quantity": 2, "unit": "loaves", "store": "WALMART", "checked": false, "notes": "Whole wheat" },
+    { "id": "shop-12", "name": "Yogurt Tubes", "quantity": 1, "unit": "box", "store": "WALMART", "checked": false, "notes": "GoGurt for lunches" },
+    { "id": "shop-13", "name": "AA Batteries", "quantity": 1, "unit": "pack", "store": "OTHER", "checked": false, "notes": "For Xbox controllers" },
+    { "id": "shop-14", "name": "Birthday Card", "quantity": 1, "unit": null, "store": "OTHER", "checked": false, "notes": "For Grandma's birthday" }
+  ],
+  "tasks": [
+    {
+      "id": "task-1",
+      "title": "Ethan: Math worksheet (Ch 5)",
+      "completed": false,
+      "priority": "HIGH",
+      "dueDate": "2024-12-20T00:00:00.000Z",
+      "startDate": null,
+      "scheduledDate": null,
+      "recurrence": null,
+      "notes": "Fractions practice - 20 problems"
+    },
+    {
+      "id": "task-2",
+      "title": "Lily: Reading log (20 min/day)",
+      "completed": false,
+      "priority": "MEDIUM",
+      "dueDate": "2024-12-20T00:00:00.000Z",
+      "startDate": null,
+      "scheduledDate": null,
+      "recurrence": "WEEKLY",
+      "notes": "Need parent signature"
+    },
+    {
+      "id": "task-3",
+      "title": "Science fair project - research phase",
+      "completed": false,
+      "priority": "HIGH",
+      "dueDate": "2024-12-27T00:00:00.000Z",
+      "startDate": null,
+      "scheduledDate": null,
+      "recurrence": null,
+      "notes": "Ethan's volcano project - need baking soda & vinegar"
+    },
+    {
+      "id": "task-4",
+      "title": "Schedule Max's vet appointment",
+      "completed": false,
+      "priority": "MEDIUM",
+      "dueDate": "2024-12-22T00:00:00.000Z",
+      "startDate": null,
+      "scheduledDate": null,
+      "recurrence": null,
+      "notes": "Annual checkup + shots"
+    },
+    {
+      "id": "task-5",
+      "title": "Sign up for spring soccer",
+      "completed": false,
+      "priority": "LOW",
+      "dueDate": "2024-12-31T00:00:00.000Z",
+      "startDate": null,
+      "scheduledDate": null,
+      "recurrence": null,
+      "notes": "Registration opens Dec 15"
+    },
+    {
+      "id": "task-6",
+      "title": "Lily: Art show permission slip",
+      "completed": true,
+      "priority": "HIGH",
+      "dueDate": "2024-12-18T00:00:00.000Z",
+      "startDate": null,
+      "scheduledDate": null,
+      "recurrence": null,
+      "notes": "Field trip to art museum"
+    },
+    {
+      "id": "task-7",
+      "title": "Order holiday cards",
+      "completed": false,
+      "priority": "MEDIUM",
+      "dueDate": "2024-12-21T00:00:00.000Z",
+      "startDate": null,
+      "scheduledDate": null,
+      "recurrence": null,
+      "notes": "Use the family photo from Thanksgiving"
+    },
+    {
+      "id": "task-8",
+      "title": "Book piano recital outfit",
+      "completed": false,
+      "priority": "LOW",
+      "dueDate": "2025-01-05T00:00:00.000Z",
+      "startDate": null,
+      "scheduledDate": null,
+      "recurrence": null,
+      "notes": "Lily's winter recital - need nice dress"
+    }
+  ]
+}
