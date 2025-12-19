@@ -430,5 +430,86 @@ model Settings {
 
 ---
 
+## 11. Photo Optimization for Screensaver
+
+### Current State
+- Photos served raw without any processing
+- Large phone photos (4-8MB, 4000x3000px) cause stuttering
+- Ken Burns animations struggle on Raspberry Pi with large files
+
+### Proposed Enhancement
+Automatic on-the-fly image optimization with caching.
+
+#### How It Works
+1. Photo requested via `/api/local-photos/[filename]`
+2. Check if optimized version exists in cache
+3. If not, optimize and save to cache
+4. Serve optimized version
+
+#### Optimization Settings
+
+| Setting | Value | Reason |
+|---------|-------|--------|
+| Max Width | 1920px | Full HD is plenty for TV |
+| Max Height | 1080px | Matches display resolution |
+| Quality | 85% | Good balance of size/quality |
+| Format | JPEG | Smaller than PNG for photos |
+
+#### File Size Comparison
+
+| Original | Optimized | Savings |
+|----------|-----------|---------|
+| 5MB (4000x3000) | ~300KB (1920x1080) | 94% |
+| 8MB (4032x3024) | ~350KB (1920x1080) | 96% |
+
+#### Implementation
+
+**Dependencies:**
+```bash
+npm install sharp
+```
+
+**Cache Location:**
+```
+/home/pi/famcal-photos/.cache/
+```
+
+**Modified API Route:**
+```typescript
+// src/app/api/local-photos/[filename]/route.ts
+
+import sharp from 'sharp';
+
+async function getOptimizedPhoto(originalPath: string, cachePath: string) {
+  // Check cache first
+  if (fs.existsSync(cachePath)) {
+    return fs.readFileSync(cachePath);
+  }
+
+  // Optimize and cache
+  const optimized = await sharp(originalPath)
+    .resize(1920, 1080, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 85 })
+    .toBuffer();
+
+  fs.writeFileSync(cachePath, optimized);
+  return optimized;
+}
+```
+
+#### Benefits
+- Smooth Ken Burns animations on Raspberry Pi
+- No manual photo preparation needed
+- One-time optimization per photo (cached)
+- Original photos preserved
+
+#### Settings UI (Optional)
+- Max resolution dropdown (1080p, 1440p, 4K)
+- Quality slider (70-95%)
+- Clear cache button
+- Cache size display
+
+---
+
 *Document created: December 2024*
 *Status: Pending discussion*
