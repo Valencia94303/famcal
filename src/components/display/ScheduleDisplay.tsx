@@ -109,7 +109,22 @@ export function ScheduleDisplay({ theme }: ScheduleDisplayProps) {
   }
 
   if (todayItems.length === 0) {
-    return null;
+    return (
+      <div className={`${theme.cardBg} rounded-3xl p-6 shadow-2xl shadow-black/10`}>
+        <h2 className={`text-[1.8vw] font-bold ${theme.textPrimary} mb-4`}>
+          Today's Schedule
+        </h2>
+        <div className="flex flex-col items-center justify-center py-8">
+          <span className="text-[3vw] mb-3">🗓️</span>
+          <p className={`text-[1.2vw] ${theme.textMuted} text-center`}>
+            No scheduled activities for today
+          </p>
+          <p className={`text-[0.9vw] ${theme.textMuted} text-center mt-1`}>
+            Enjoy your free time!
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
