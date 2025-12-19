@@ -438,13 +438,13 @@ model Settings {
 - Ken Burns animations struggle on Raspberry Pi with large files
 
 ### Proposed Enhancement
-Automatic on-the-fly image optimization with caching.
+Automatic photo optimization using hybrid approach - archive originals, optimize in place.
 
 #### How It Works
-1. Photo requested via `/api/local-photos/[filename]`
-2. Check if optimized version exists in cache
-3. If not, optimize and save to cache
-4. Serve optimized version
+1. New photos detected in photo folder
+2. Original moved to `.originals/` archive folder
+3. Optimized version saved in place of original
+4. Originals preserved for recovery if needed
 
 #### Optimization Settings
 
@@ -462,6 +462,18 @@ Automatic on-the-fly image optimization with caching.
 | 5MB (4000x3000) | ~300KB (1920x1080) | 94% |
 | 8MB (4032x3024) | ~350KB (1920x1080) | 96% |
 
+#### Folder Structure
+```
+/home/pi/famcal-photos/
+├── photo1.jpg          # Optimized (300KB)
+├── photo2.jpg          # Optimized (350KB)
+├── photo3.jpg          # Optimized (280KB)
+└── .originals/         # Hidden archive folder
+    ├── photo1.jpg      # Original (5MB)
+    ├── photo2.jpg      # Original (6MB)
+    └── photo3.jpg      # Original (4MB)
+```
+
 #### Implementation
 
 **Dependencies:**
@@ -469,45 +481,68 @@ Automatic on-the-fly image optimization with caching.
 npm install sharp
 ```
 
-**Cache Location:**
-```
-/home/pi/famcal-photos/.cache/
-```
-
-**Modified API Route:**
+**New API Route:** `POST /api/local-photos/optimize`
 ```typescript
-// src/app/api/local-photos/[filename]/route.ts
-
 import sharp from 'sharp';
 
-async function getOptimizedPhoto(originalPath: string, cachePath: string) {
-  // Check cache first
-  if (fs.existsSync(cachePath)) {
-    return fs.readFileSync(cachePath);
+async function optimizePhotos(photoPath: string) {
+  const archivePath = path.join(photoPath, '.originals');
+  fs.mkdirSync(archivePath, { recursive: true });
+
+  const files = fs.readdirSync(photoPath);
+
+  for (const file of files) {
+    if (isImage(file) && !isOptimized(file)) {
+      const filePath = path.join(photoPath, file);
+      const archiveFile = path.join(archivePath, file);
+
+      // Move original to archive
+      fs.renameSync(filePath, archiveFile);
+
+      // Create optimized version in place
+      await sharp(archiveFile)
+        .resize(1920, 1080, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 85 })
+        .toFile(filePath);
+    }
   }
-
-  // Optimize and cache
-  const optimized = await sharp(originalPath)
-    .resize(1920, 1080, { fit: 'inside', withoutEnlargement: true })
-    .jpeg({ quality: 85 })
-    .toBuffer();
-
-  fs.writeFileSync(cachePath, optimized);
-  return optimized;
 }
 ```
 
+#### Trigger Options
+
+**Option A: Manual Button**
+- "Optimize Photos" button in Settings
+- Shows progress and results
+
+**Option B: Automatic on Scan**
+- Optimize when new photos detected
+- Runs during `/api/local-photos` scan
+
+**Option C: Scheduled**
+- Run optimization check every hour
+- Optimizes any new unprocessed photos
+
 #### Benefits
 - Smooth Ken Burns animations on Raspberry Pi
+- Saves disk space (no duplicate optimized copies)
+- Originals preserved in archive for recovery
 - No manual photo preparation needed
-- One-time optimization per photo (cached)
-- Original photos preserved
 
-#### Settings UI (Optional)
-- Max resolution dropdown (1080p, 1440p, 4K)
-- Quality slider (70-95%)
-- Clear cache button
-- Cache size display
+#### Settings UI
+- "Optimize Photos" button with progress indicator
+- "Restore Originals" button (moves files back)
+- Archive size display
+- Auto-optimize toggle (on new photos)
+
+#### Recovery
+```bash
+# Restore all originals
+mv /home/pi/famcal-photos/.originals/* /home/pi/famcal-photos/
+
+# Or restore specific photo
+mv /home/pi/famcal-photos/.originals/photo1.jpg /home/pi/famcal-photos/
+```
 
 ---
 
