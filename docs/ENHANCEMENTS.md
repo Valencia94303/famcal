@@ -230,5 +230,150 @@ prisma/seed.ts
 
 ---
 
+## 8. Settings Backup & Restore
+
+### Current State
+- Settings stored only in local SQLite database
+- Rebuilding the site requires reconfiguring all settings
+- No way to transfer settings between installations
+
+### Proposed Enhancement
+Add ability to export and import all settings and data.
+
+#### Export Feature
+
+**API Endpoint:** `GET /api/backup`
+
+```json
+{
+  "version": "1.0.0",
+  "exportedAt": "2024-12-19T10:00:00Z",
+  "settings": { ... },
+  "familyMembers": [ ... ],
+  "chores": [ ... ],
+  "habits": [ ... ],
+  "rewards": [ ... ],
+  "scheduleItems": [ ... ]
+}
+```
+
+#### Import Feature
+
+**API Endpoint:** `POST /api/backup/restore`
+
+- Upload JSON backup file
+- Option to merge or replace existing data
+- Validate data structure before import
+- Handle version migrations if needed
+
+#### UI Changes
+
+**In Settings Section:**
+- "Export Backup" button - downloads JSON file
+- "Import Backup" button - file upload with confirmation
+- Last backup timestamp display
+- Option to auto-backup on schedule
+
+#### Data Included in Backup
+
+| Data Type | Included | Notes |
+|-----------|:--------:|-------|
+| Settings | ✓ | All app settings |
+| Family Members | ✓ | Names, colors, roles |
+| Chores | ✓ | Definitions and assignments |
+| Habits | ✓ | Definitions only |
+| Rewards | ✓ | Names and point costs |
+| Schedule Items | ✓ | Daily routines |
+| Point Transactions | Optional | Can be large |
+| Completion History | Optional | Can be large |
+
+#### Benefits
+- Quick recovery after rebuild
+- Easy migration to new hardware
+- Shareable family configurations
+- Version control for settings
+
+---
+
+## 9. User Profile Customization
+
+### Current State
+- Family members have name and color only
+- No avatar/profile picture support
+- Limited personalization options
+
+### Proposed Enhancement
+Allow users to customize their profile appearance.
+
+#### Profile Options
+
+| Field | Description |
+|-------|-------------|
+| **Avatar** | Profile picture or emoji |
+| **Display Name** | Nickname for dashboard |
+| **Color** | Already exists - theme color |
+| **Birthday** | For birthday celebrations |
+| **Preferences** | Individual display preferences |
+
+#### Avatar Options
+
+**Option A: Emoji Avatars**
+- Select from curated emoji set
+- Simple, no file storage needed
+- Works well at any size
+
+**Option B: Built-in Avatar Library**
+- Pre-made cartoon/icon avatars
+- Multiple styles (animals, characters, etc.)
+- Stored as static assets
+
+**Option C: Custom Image Upload**
+- Upload personal photo
+- Crop/resize tool
+- Stored locally or in database
+
+**Option D: Gravatar Integration**
+- Link to email for automatic avatar
+- No local storage needed
+- Requires email per family member
+
+#### Database Changes
+
+```prisma
+model FamilyMember {
+  // Existing fields...
+  avatar        String?   // Emoji, asset path, or image URL
+  avatarType    String    @default("emoji")  // "emoji", "asset", "custom"
+  displayName   String?   // Optional nickname
+  birthday      DateTime?
+  preferences   Json?     // Individual settings
+}
+```
+
+#### UI Changes
+
+**Family Member Edit Form:**
+- Avatar picker (emoji grid or image upload)
+- Display name field
+- Birthday date picker
+
+**Dashboard Display:**
+- Show avatar next to assigned items
+- Avatar in chore assignments
+- Avatar in points leaderboard
+- Birthday indicator on special days
+
+#### Where Avatars Would Appear
+
+| Location | Current | With Avatars |
+|----------|---------|--------------|
+| Chore assignments | Color dot | Avatar + color |
+| Habit tracking | Name only | Avatar + name |
+| Points display | Color bar | Avatar + points |
+| Leaderboard | Names | Avatar + name + rank |
+| Task assignments | Color dot | Avatar |
+
+---
+
 *Document created: December 2024*
 *Status: Pending discussion*
