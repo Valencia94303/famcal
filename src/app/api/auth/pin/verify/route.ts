@@ -70,10 +70,11 @@ export async function POST(request: Request) {
     const session = await createPinSession();
 
     // Set session cookie
+    // Note: secure is false to support local network access over HTTP
     const cookieStore = await cookies();
     cookieStore.set("famcal-pin-session", session.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
       sameSite: "lax",
       expires: session.expiresAt,
       path: "/",
