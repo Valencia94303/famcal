@@ -101,6 +101,14 @@ interface BackupData {
     recurrence?: string;
     notes?: string;
   }>;
+  pointTransactions?: Array<{
+    id: string;
+    familyMemberId: string;
+    amount: number;
+    type: string;
+    description?: string;
+    createdAt?: string;
+  }>;
 }
 
 // POST - Restore from backup JSON
@@ -347,6 +355,28 @@ export async function POST(request: Request) {
           });
         }
         restored.tasks = data.tasks.length;
+      }
+
+      // Restore point transactions (for demo/starting balances)
+      if (data.pointTransactions && data.pointTransactions.length > 0) {
+        for (const transaction of data.pointTransactions) {
+          try {
+            await tx.pointTransaction.create({
+              data: {
+                id: transaction.id,
+                familyMemberId: transaction.familyMemberId,
+                amount: transaction.amount,
+                type: transaction.type,
+                description: transaction.description,
+                createdAt: transaction.createdAt ? new Date(transaction.createdAt) : new Date(),
+              },
+            });
+          } catch {
+            // Skip if foreign key constraint fails (member doesn't exist)
+            console.warn(`Skipping transaction ${transaction.id}: member not found`);
+          }
+        }
+        restored.pointTransactions = data.pointTransactions.length;
       }
     });
 

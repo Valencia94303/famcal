@@ -589,5 +589,23 @@
       "recurrence": null,
       "notes": "Lily's winter recital - need nice dress"
     }
+  ],
+  "pointTransactions": [
+    {
+      "id": "pt-ethan-1",
+      "familyMemberId": "ethan",
+      "amount": 347,
+      "type": "BONUS",
+      "description": "5 months of chores and habits - saving for video game!",
+      "createdAt": "2024-12-19T00:00:00.000Z"
+    },
+    {
+      "id": "pt-lily-1",
+      "familyMemberId": "lily",
+      "amount": 168,
+      "type": "BONUS",
+      "description": "5 months of chores and habits - just got ice cream last week!",
+      "createdAt": "2024-12-19T00:00:00.000Z"
+    }
   ]
 }
