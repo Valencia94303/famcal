@@ -68,14 +68,16 @@ Open a terminal (click the terminal icon in the top bar) and run:
 # Update your system
 sudo apt update && sudo apt upgrade -y
 
-# Install Node.js 18
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+# Install Node.js 20 (required - Node 18 is NOT compatible)
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
 
 # Verify installation
-node --version  # Should show v18.x.x
-npm --version   # Should show 9.x.x or higher
+node --version  # Should show v20.x.x or higher
+npm --version   # Should show 10.x.x or higher
 ```
+
+> **Important**: Next.js 15+ requires Node.js 20.9.0 or higher. Node 18 will NOT work.
 
 ---
 
@@ -101,11 +103,11 @@ cd famcal
 npm install
 ```
 
-### Step 6: Build the Application
+### Step 6: Configure Environment
 
 ```bash
-# Create the production build
-npm run build
+# Create the environment file
+echo 'DATABASE_URL="file:./dev.db"' > .env
 ```
 
 ### Step 7: Initialize the Database
@@ -115,7 +117,14 @@ npm run build
 npx prisma db push
 ```
 
-### Step 8: Test the Application
+### Step 8: Build the Application
+
+```bash
+# Create the production build
+npm run build
+```
+
+### Step 9: Test the Application
 
 ```bash
 # Start FamCal
@@ -132,7 +141,7 @@ You should see the FamCal dashboard! Press `Ctrl+C` in the terminal to stop for 
 
 This makes FamCal start automatically when your Pi boots.
 
-### Step 9: Run the Auto-Start Setup
+### Step 10: Run the Auto-Start Setup
 
 ```bash
 # Make sure you're in the famcal directory
@@ -143,6 +152,8 @@ sudo ./scripts/setup-autostart.sh
 ```
 
 You'll see confirmation that the service is installed and running.
+
+> **Note**: The setup script expects FamCal to be installed at `~/famcal`. If you installed it elsewhere, you'll need to move it or manually configure the service.
 
 ### Verify It's Working
 
@@ -169,23 +180,64 @@ You should see "active (running)" in green.
 
 Kiosk mode makes your Pi display FamCal fullscreen automatically, with no desktop or browser controls visible.
 
-### Step 10: Run the Kiosk Setup
+> **Note**: Raspberry Pi OS (Bookworm and later) uses **Wayland** instead of X11. The instructions below are updated for Wayland.
+
+### Step 11: Install Chromium
 
 ```bash
-# Run the kiosk setup script
-sudo ./scripts/setup-kiosk.sh
+# Install Chromium browser
+sudo apt install -y chromium
 ```
 
-### Step 11: Reboot
+### Step 12: Enable Desktop Autologin
+
+```bash
+sudo raspi-config
+```
+
+Navigate to:
+1. **System Options** → **Boot / Auto Login**
+2. Select **Desktop Autologin**
+3. Finish and exit
+
+### Step 13: Create Kiosk Autostart
+
+```bash
+# Fix permissions if needed
+sudo chown -R $USER:$USER ~/.config
+
+# Create autostart directory
+mkdir -p ~/.config/autostart
+
+# Create autostart file with delay (gives FamCal time to start)
+cat << 'EOF' > ~/.config/autostart/famcal.desktop
+[Desktop Entry]
+Type=Application
+Name=FamCal Kiosk
+Exec=sh -c 'sleep 10 && chromium --kiosk --noerrdialogs --disable-infobars http://localhost:3000'
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+EOF
+```
+
+### Step 14: Disable Screen Blanking
+
+```bash
+sudo raspi-config nonint do_blanking 1
+```
+
+### Step 15: Reboot
 
 ```bash
 sudo reboot
 ```
 
 After rebooting:
-- FamCal will start automatically
-- Chromium will open in fullscreen
-- The screen will never go to sleep
+- FamCal service starts automatically
+- Desktop logs in automatically
+- Chromium opens in fullscreen kiosk mode after 10 seconds
+- Screen will not blank or sleep
 
 ---
 
@@ -278,6 +330,30 @@ scp ~/Pictures/family/*.jpg pi@famcal.local:~/famcal-photos/
 
 ## Troubleshooting
 
+### Node.js version error
+
+If you see "Node.js version >= 20.9.0 is required":
+```bash
+# Remove old Node.js
+sudo apt remove nodejs npm -y
+
+# Install Node.js 20
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# Verify
+node --version  # Must be v20.x.x or higher
+```
+
+### DATABASE_URL not found
+
+If you see "Environment variable not found: DATABASE_URL":
+```bash
+cd ~/famcal
+echo 'DATABASE_URL="file:./dev.db"' > .env
+npx prisma db push
+```
+
 ### Dashboard won't load
 
 ```bash
@@ -321,9 +397,67 @@ sudo systemctl restart lightdm
 ### Screen going to sleep
 
 ```bash
-# Re-run kiosk setup
-sudo ./scripts/setup-kiosk.sh
+# Disable screen blanking
+sudo raspi-config nonint do_blanking 1
 sudo reboot
+```
+
+### Kiosk mode not starting / Chromium blank
+
+If Chromium opens but shows a blank page:
+```bash
+# The FamCal service needs time to start
+# Edit the autostart to add a longer delay
+nano ~/.config/autostart/famcal.desktop
+
+# Change sleep 10 to sleep 15 or sleep 20:
+# Exec=sh -c 'sleep 15 && chromium --kiosk ...'
+```
+
+If Chromium doesn't open at all:
+```bash
+# Check if chromium is installed
+which chromium
+
+# If not found, install it
+sudo apt install -y chromium
+
+# Check autostart file exists
+cat ~/.config/autostart/famcal.desktop
+
+# Fix permissions if needed
+sudo chown -R $USER:$USER ~/.config
+```
+
+### "chromium-browser: command not found"
+
+On newer Raspberry Pi OS, the command is `chromium` not `chromium-browser`:
+```bash
+sudo apt install -y chromium
+chromium --version
+```
+
+### Permission denied when creating autostart
+
+```bash
+# Fix ownership of .config directory
+sudo chown -R $USER:$USER ~/.config
+
+# Then create the file
+mkdir -p ~/.config/autostart
+nano ~/.config/autostart/famcal.desktop
+```
+
+### FamCal installed in wrong location
+
+The auto-start script expects FamCal at `~/famcal`. If you cloned elsewhere:
+```bash
+# Move to correct location
+mv ~/Documents/famcal/famcal-main ~/famcal
+
+# Re-run setup
+cd ~/famcal
+sudo ./scripts/setup-autostart.sh
 ```
 
 ### How to update FamCal

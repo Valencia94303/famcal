@@ -27,19 +27,32 @@ See the [Raspberry Pi Deployment Guide](docs/DEPLOYMENT.md) for complete setup i
 ```bash
 # On your Raspberry Pi 5
 
-# 1. Install Node.js (if not already installed)
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt install -y nodejs
+# 1. Install Node.js 20+ (required)
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs chromium
 
 # 2. Clone and build
 git clone https://github.com/Valencia94303/famcal.git
-cd famcal
+cd ~/famcal
+echo 'DATABASE_URL="file:./dev.db"' > .env
 npm install
+npx prisma db push
 npm run build
 
-# 3. Setup auto-start and kiosk mode
+# 3. Setup auto-start
 sudo ./scripts/setup-autostart.sh
-sudo ./scripts/setup-kiosk.sh
+
+# 4. Setup kiosk mode (see docs/DEPLOYMENT.md for full steps)
+sudo raspi-config   # Enable Desktop Autologin
+mkdir -p ~/.config/autostart
+cat << 'EOF' > ~/.config/autostart/famcal.desktop
+[Desktop Entry]
+Type=Application
+Name=FamCal Kiosk
+Exec=sh -c 'sleep 10 && chromium --kiosk --noerrdialogs --disable-infobars http://localhost:3000'
+X-GNOME-Autostart-enabled=true
+EOF
+
 sudo reboot
 ```
 
@@ -72,9 +85,10 @@ Open [http://localhost:3000](http://localhost:3000) for the dashboard and [http:
 - Stable internet connection (for weather data)
 
 ### Software Requirements
-- Raspberry Pi OS (64-bit recommended)
-- Node.js 18+
-- npm 9+
+- Raspberry Pi OS (64-bit, Bookworm or later)
+- Node.js 20+ (required - Node 18 will NOT work)
+- npm 10+
+- Chromium browser
 
 ## Architecture Overview
 
