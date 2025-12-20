@@ -13,7 +13,7 @@ export function MealPlanDisplay({ theme }: MealPlanDisplayProps) {
     { type: "Breakfast", icon: "🥚", meal: "Chilaquiles Verdes", note: "with fried eggs & crema" },
     { type: "Lunch", icon: "🌮", meal: "Tacos de Carnitas", note: "cilantro, onion, salsa verde" },
     { type: "Snack", icon: "🥑", meal: "Guacamole & Chips", note: "fresh-made for the kids" },
-    { type: "Dinner", icon: "🫔", meal: "Enchiladas Suizas", note: "chicken, tomatillo cream sauce" },
+    { type: "Dinner", icon: "🫔", meal: "Enchiladas Michoacanas", note: "chicken, guajillo chile sauce" },
   ];
 
   return (
