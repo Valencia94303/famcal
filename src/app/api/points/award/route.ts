@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requirePermission, getAuthContext, getClientInfo } from "@/lib/api-auth";
 import { createAuditLog } from "@/lib/audit";
+import {
+  safeParseJSON,
+  validateString,
+  validateNumber,
+  collectErrors,
+  LIMITS,
+} from "@/lib/request-validation";
 
 // POST award bonus points to a family member (parents only)
 export async function POST(request: NextRequest) {
@@ -12,26 +19,29 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { familyMemberId, amount, description, awardedById } =
-      await request.json();
+    // Safe JSON parsing
+    const parsed = await safeParseJSON(request);
+    if (!parsed.success) return parsed.error;
 
-    if (!familyMemberId || !amount) {
-      return NextResponse.json(
-        { error: "familyMemberId and amount are required" },
-        { status: 400 }
-      );
-    }
+    const { familyMemberId, amount, description, awardedById } = parsed.data;
 
-    if (amount <= 0) {
-      return NextResponse.json(
-        { error: "Amount must be positive" },
-        { status: 400 }
-      );
-    }
+    // Validate inputs
+    const validationError = collectErrors([
+      validateString(familyMemberId, "familyMemberId", { required: true }),
+      validateNumber(amount, "amount", { required: true, min: 1, max: LIMITS.POINTS_MAX, integer: true }),
+      validateString(description, "description", { maxLength: LIMITS.DESCRIPTION_MAX }),
+    ]);
+    if (validationError) return validationError;
+
+    // Type assertions after validation
+    const memberId = familyMemberId as string;
+    const pointsAmount = amount as number;
+    const desc = description as string | undefined;
+    const awarderId = awardedById as string | undefined;
 
     // Verify the recipient exists and is a CHILD
     const recipient = await prisma.familyMember.findUnique({
-      where: { id: familyMemberId },
+      where: { id: memberId },
     });
 
     if (!recipient) {
@@ -53,13 +63,13 @@ export async function POST(request: NextRequest) {
     const clientInfo = getClientInfo(request);
 
     // Determine who is awarding the points
-    const performerId = awardedById || authContext.memberId;
+    const performerId = awarderId || authContext.memberId;
     let performerName = authContext.memberName;
 
     // Verify the awarder is a PARENT if provided
-    if (awardedById && awardedById !== authContext.memberId) {
+    if (awarderId && awarderId !== authContext.memberId) {
       const awarder = await prisma.familyMember.findUnique({
-        where: { id: awardedById },
+        where: { id: awarderId },
       });
 
       if (awarder) {
@@ -75,17 +85,17 @@ export async function POST(request: NextRequest) {
 
     // Get current balance before transaction
     const previousBalance = await prisma.pointTransaction.aggregate({
-      where: { familyMemberId },
+      where: { familyMemberId: memberId },
       _sum: { amount: true },
     });
 
     // Create the transaction with audit fields
     const transaction = await prisma.pointTransaction.create({
       data: {
-        familyMemberId,
-        amount,
+        familyMemberId: memberId,
+        amount: pointsAmount,
         type: "BONUS",
-        description: description || "Bonus points",
+        description: desc || "Bonus points",
         performedById: performerId,
         ipAddress: clientInfo.ipAddress,
         userAgent: clientInfo.userAgent,
@@ -94,7 +104,7 @@ export async function POST(request: NextRequest) {
 
     // Get updated balance
     const balanceResult = await prisma.pointTransaction.aggregate({
-      where: { familyMemberId },
+      where: { familyMemberId: memberId },
       _sum: { amount: true },
     });
 
@@ -106,8 +116,8 @@ export async function POST(request: NextRequest) {
       entityType: "POINTS",
       entityId: transaction.id,
       oldValue: { balance: previousBalance._sum.amount || 0 },
-      newValue: { balance: newBalance, awardedAmount: amount },
-      description: `Awarded ${amount} points to ${recipient.name}: ${description || "Bonus points"}`,
+      newValue: { balance: newBalance, awardedAmount: pointsAmount },
+      description: `Awarded ${pointsAmount} points to ${recipient.name}: ${desc || "Bonus points"}`,
       request,
       performedBy: performerId || undefined,
       performedByName: performerName || undefined,

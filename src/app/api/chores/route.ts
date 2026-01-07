@@ -1,6 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { startOfDay, endOfDay, addDays, format } from "date-fns";
+import {
+  safeParseJSON,
+  validateString,
+  validateNumber,
+  validateEnum,
+  collectErrors,
+  LIMITS,
+  PATTERNS,
+} from "@/lib/request-validation";
+
+const PRIORITIES = ["LOW", "NORMAL", "HIGH", "URGENT"] as const;
+const RECURRENCES = ["DAILY", "WEEKLY", "BIWEEKLY", "MONTHLY", "CUSTOM"] as const;
 
 // GET chores - use ?all=true to get all chores (for management), otherwise returns today's chores only
 export async function GET(request: Request) {
@@ -87,6 +99,10 @@ export async function GET(request: Request) {
 // POST create new chore
 export async function POST(request: Request) {
   try {
+    // Safe JSON parsing
+    const parsed = await safeParseJSON(request);
+    if (!parsed.success) return parsed.error;
+
     const {
       title,
       description,
@@ -98,29 +114,34 @@ export async function POST(request: Request) {
       recurTime,
       dueDate,
       assigneeIds,
-    } = await request.json();
+    } = parsed.data;
 
-    if (!title) {
-      return NextResponse.json(
-        { error: "Title is required" },
-        { status: 400 }
-      );
-    }
+    // Validate inputs
+    const validationError = collectErrors([
+      validateString(title, "title", { required: true, minLength: 1, maxLength: LIMITS.TITLE_MAX }),
+      validateString(description, "description", { maxLength: LIMITS.DESCRIPTION_MAX }),
+      validateString(icon, "icon", { maxLength: 50 }),
+      validateNumber(points, "points", { min: 0, max: 1000, integer: true }),
+      validateEnum(priority, "priority", PRIORITIES),
+      validateEnum(recurrence, "recurrence", RECURRENCES),
+      validateString(recurTime, "recurTime", { pattern: PATTERNS.TIME_24H, patternMessage: "recurTime must be in HH:MM format" }),
+    ]);
+    if (validationError) return validationError;
 
     const chore = await prisma.chore.create({
       data: {
-        title,
-        description: description || null,
-        icon: icon || null,
-        points: points || 0,
-        priority: priority || "NORMAL",
-        recurrence: recurrence || null,
+        title: title as string,
+        description: (description as string) || null,
+        icon: (icon as string) || null,
+        points: (points as number) || 0,
+        priority: (priority as string) || "NORMAL",
+        recurrence: (recurrence as string) || null,
         recurDays: recurDays ? JSON.stringify(recurDays) : null,
-        recurTime: recurTime || null,
-        dueDate: dueDate ? new Date(dueDate) : null,
-        assignments: assigneeIds?.length
+        recurTime: (recurTime as string) || null,
+        dueDate: dueDate ? new Date(dueDate as string) : null,
+        assignments: (assigneeIds as string[])?.length
           ? {
-              create: assigneeIds.map((assigneeId: string, index: number) => ({
+              create: (assigneeIds as string[]).map((assigneeId: string, index: number) => ({
                 assigneeId,
                 rotationOrder: index,
               })),

@@ -1,30 +1,44 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import {
+  safeParseJSON,
+  validateString,
+  validateNumber,
+  collectErrors,
+  LIMITS,
+} from "@/lib/request-validation";
 
 // POST - Manually adjust points (add or subtract)
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { familyMemberId, amount, reason } = body;
+    // Safe JSON parsing
+    const parsed = await safeParseJSON(request);
+    if (!parsed.success) return parsed.error;
 
-    if (!familyMemberId || amount === undefined) {
-      return NextResponse.json(
-        { error: "familyMemberId and amount are required" },
-        { status: 400 }
-      );
-    }
+    const { familyMemberId, amount, reason } = parsed.data;
 
-    const parsedAmount = parseInt(amount);
-    if (isNaN(parsedAmount) || parsedAmount === 0) {
+    // Validate inputs (amount can be negative for deductions)
+    const validationError = collectErrors([
+      validateString(familyMemberId, "familyMemberId", { required: true }),
+      validateNumber(amount, "amount", { required: true, min: LIMITS.POINTS_MIN, max: LIMITS.POINTS_MAX, integer: true }),
+      validateString(reason, "reason", { maxLength: LIMITS.DESCRIPTION_MAX }),
+    ]);
+    if (validationError) return validationError;
+
+    const parsedAmount = amount as number;
+    const memberId = familyMemberId as string;
+    const reasonText = reason as string | undefined;
+
+    if (parsedAmount === 0) {
       return NextResponse.json(
-        { error: "Invalid amount" },
+        { error: "Amount cannot be zero" },
         { status: 400 }
       );
     }
 
     // Verify member exists
     const member = await prisma.familyMember.findUnique({
-      where: { id: familyMemberId },
+      where: { id: memberId },
     });
 
     if (!member) {
@@ -36,7 +50,7 @@ export async function POST(request: Request) {
 
     // Get current balance
     const currentBalance = await prisma.pointTransaction.aggregate({
-      where: { familyMemberId },
+      where: { familyMemberId: memberId },
       _sum: { amount: true },
     });
     const balance = currentBalance._sum.amount || 0;
@@ -52,10 +66,10 @@ export async function POST(request: Request) {
     // Create transaction
     const transaction = await prisma.pointTransaction.create({
       data: {
-        familyMemberId,
+        familyMemberId: memberId,
         amount: parsedAmount,
         type: parsedAmount > 0 ? "BONUS" : "DEDUCTION",
-        description: reason || (parsedAmount > 0 ? "Points added" : "Points deducted"),
+        description: reasonText || (parsedAmount > 0 ? "Points added" : "Points deducted"),
       },
     });
 
