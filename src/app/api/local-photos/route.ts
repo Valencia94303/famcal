@@ -5,6 +5,16 @@ import * as path from "path";
 
 const SUPPORTED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
 
+// Fisher-Yates shuffle for unbiased randomization
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 // GET - Scan local folder for photos
 export async function GET() {
   try {
@@ -37,8 +47,8 @@ export async function GET() {
         url: `/api/local-photos/${encodeURIComponent(filename)}`,
       }));
 
-    // Shuffle photos for variety
-    const shuffled = photos.sort(() => Math.random() - 0.5);
+    // Shuffle photos for variety (using Fisher-Yates for unbiased results)
+    const shuffled = shuffleArray(photos);
 
     return NextResponse.json({
       photos: shuffled,
