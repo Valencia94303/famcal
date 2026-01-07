@@ -148,6 +148,7 @@ model ChoreCompletion {
   scheduledFor DateTime
 
   @@index([choreId, scheduledFor])
+  @@index([completedById, scheduledFor]) // User completion history queries
 }
 
 // Cached calendar events for fast display
@@ -482,6 +483,7 @@ model Recipe {
   mealPlanItems MealPlanItem[]
   variations    RecipeVariation[]
 
+  @@index([name])     // Recipe search by name
   @@index([cuisine])
   @@index([isActive])
 }

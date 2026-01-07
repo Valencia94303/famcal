@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Theme } from "@/lib/theme";
 
@@ -29,34 +29,21 @@ export function PointsDisplay({ theme }: PointsDisplayProps) {
 
   const fetchBalances = async () => {
     try {
-      // First get all family members
-      const membersRes = await fetch("/api/family");
-      const membersData = await membersRes.json();
-      const members = membersData.members || [];
-
-      // Filter to children only
-      const children = members.filter(
-        (m: { role: string }) => m.role.toUpperCase() === "CHILD"
-      );
-
-      if (children.length === 0) {
-        setBalances([]);
-        setIsLoading(false);
-        return;
-      }
-
-      // Fetch balance for each child
-      const balancePromises = children.map((child: { id: string }) =>
-        fetch(`/api/points/balance/${child.id}`).then((r) => r.json())
-      );
-
-      const results = await Promise.all(balancePromises);
-      setBalances(results.filter((b) => b.memberId));
+      // Use bulk endpoint - single query instead of N+1
+      const res = await fetch("/api/points/balances");
+      const data = await res.json();
+      setBalances(data.balances || []);
     } catch (error) {
       console.error("Error fetching point balances:", error);
     }
     setIsLoading(false);
   };
+
+  // Memoize sorted balances to avoid mutation during render
+  const sortedBalances = useMemo(
+    () => [...balances].sort((a, b) => b.balance - a.balance),
+    [balances]
+  );
 
   if (isLoading) {
     return (
@@ -105,9 +92,7 @@ export function PointsDisplay({ theme }: PointsDisplayProps) {
       </motion.h2>
 
       <div className="space-y-3">
-        {balances
-          .sort((a, b) => b.balance - a.balance) // Sort by points descending
-          .map((balance, index) => (
+        {sortedBalances.map((balance, index) => (
             <motion.div
               key={balance.memberId}
               className="flex items-center gap-4"
