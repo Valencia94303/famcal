@@ -4,53 +4,62 @@ import { prisma } from "@/lib/prisma";
 // Store options for Stockton, CA area
 const STORES = {
   COSTCO: "COSTCO",
-  WINCO: "WINCO",
   WALMART: "WALMART",
-  TRADER_JOES: "TRADER_JOES",
+  RANCHO_SAN_MIGUEL: "RANCHO_SAN_MIGUEL", // Mexican market
   SHUN_FAT: "SHUN_FAT", // Asian market
-  CARDENAS: "CARDENAS",
-  SAFEWAY: "SAFEWAY",
-  TARGET: "TARGET",
   OTHER: "OTHER",
 } as const;
 
 // Map ingredient keywords to best store (price + availability) for Stockton, CA
+// Priority order: Costco (1) → Walmart (2) → Rancho San Miguel (3) → Shun Fat (4)
 const STORE_MAPPING: { keywords: string[]; store: string; priority: number }[] = [
-  // Costco - bulk proteins, dairy, produce basics
+  // Costco - bulk proteins, dairy, produce, pantry staples (PRIORITY 1)
   {
-    keywords: ["chicken breast", "chicken thigh", "steak", "ny steak", "ground beef", "pork", "salmon", "shrimp", "eggs", "greek yogurt", "cheese", "butter", "olive oil", "avocado oil"],
+    keywords: [
+      // Proteins
+      "chicken breast", "chicken thigh", "steak", "ny steak", "ground beef", "pork", "salmon", "shrimp", "fish",
+      // Dairy
+      "eggs", "greek yogurt", "cheese", "butter", "cream", "milk",
+      // Oils
+      "olive oil", "avocado oil",
+      // Produce (bulk)
+      "avocado", "romaine", "spinach", "broccoli", "bell pepper",
+    ],
     store: STORES.COSTCO,
     priority: 1
   },
-  // Shun Fat Asian Market - Asian groceries (Stockton)
+  // Walmart - general groceries, produce, pantry (PRIORITY 2)
   {
-    keywords: ["soy sauce", "tamari", "sesame oil", "rice vinegar", "fish sauce", "hoisin", "sriracha", "ginger", "bok choy", "napa cabbage", "rice noodle", "tofu", "miso", "nori", "wasabi", "sake", "mirin"],
-    store: STORES.SHUN_FAT,
-    priority: 1
-  },
-  // Cardenas Markets - Mexican groceries (multiple in Stockton)
-  {
-    keywords: ["chipotle", "adobo", "tomatillo", "cotija", "queso fresco", "chorizo", "carnitas", "al pastor", "tortilla", "masa", "poblano", "serrano", "habanero", "achiote", "epazote"],
-    store: STORES.CARDENAS,
-    priority: 1
-  },
-  // Trader Joe's - specialty items (Stockton location)
-  {
-    keywords: ["everything bagel", "cauliflower rice", "riced cauliflower", "tzatziki", "hummus", "pita", "feta"],
-    store: STORES.TRADER_JOES,
-    priority: 2
-  },
-  // WinCo - fresh produce, bulk items, great prices
-  {
-    keywords: ["romaine", "lettuce", "spinach", "cilantro", "lime", "lemon", "avocado", "tomato", "onion", "garlic", "bell pepper", "jalapeño", "cabbage", "broccoli", "zucchini", "squash", "carrot", "celery", "cucumber", "mushroom"],
-    store: STORES.WINCO,
-    priority: 1
-  },
-  // Walmart - pantry staples, good prices
-  {
-    keywords: ["salt", "pepper", "cumin", "paprika", "oregano", "bay leaf", "cinnamon", "flour", "sugar", "rice", "pasta", "beans", "canned", "broth", "stock", "vinegar", "mustard", "mayo", "ketchup"],
+    keywords: [
+      // Produce
+      "lettuce", "cilantro", "lime", "lemon", "tomato", "onion", "garlic", "jalapeño", "cabbage", "zucchini", "squash", "carrot", "celery", "cucumber", "mushroom",
+      // Pantry staples
+      "salt", "pepper", "cumin", "paprika", "oregano", "bay leaf", "cinnamon", "flour", "sugar", "rice", "pasta", "beans", "canned", "broth", "stock", "vinegar", "mustard", "mayo", "ketchup",
+      // Misc
+      "bread", "sour cream", "salsa",
+    ],
     store: STORES.WALMART,
     priority: 2
+  },
+  // Rancho San Miguel - Mexican groceries (PRIORITY 3)
+  {
+    keywords: [
+      "chipotle", "adobo", "tomatillo", "cotija", "queso fresco", "chorizo", "carnitas", "al pastor",
+      "tortilla", "corn tortilla", "flour tortilla", "masa", "poblano", "serrano", "habanero",
+      "achiote", "epazote", "crema", "mexican cheese", "oaxaca",
+    ],
+    store: STORES.RANCHO_SAN_MIGUEL,
+    priority: 3
+  },
+  // Shun Fat Asian Market - Asian groceries (PRIORITY 4)
+  {
+    keywords: [
+      "soy sauce", "tamari", "sesame oil", "rice vinegar", "fish sauce", "hoisin", "sriracha",
+      "ginger", "bok choy", "napa cabbage", "rice noodle", "tofu", "miso", "nori", "wasabi",
+      "sake", "mirin", "sushi rice", "wonton", "dumpling",
+    ],
+    store: STORES.SHUN_FAT,
+    priority: 4
   },
 ];
 
@@ -113,7 +122,7 @@ function getBestStore(ingredientName: string): string {
     }
   }
 
-  return bestMatch?.store || STORES.WINCO; // Default to WinCo for general groceries
+  return bestMatch?.store || STORES.WALMART; // Default to Walmart for general groceries
 }
 
 // GET - Generate shopping list from meal plan for specified weeks
