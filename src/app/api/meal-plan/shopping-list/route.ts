@@ -5,13 +5,14 @@ import { prisma } from "@/lib/prisma";
 const STORES = {
   COSTCO: "COSTCO",
   WALMART: "WALMART",
+  TARGET: "TARGET",
   RANCHO_SAN_MIGUEL: "RANCHO_SAN_MIGUEL", // Mexican market
   SHUN_FAT: "SHUN_FAT", // Asian market
   OTHER: "OTHER",
 } as const;
 
 // Map ingredient keywords to best store (price + availability) for Stockton, CA
-// Priority order: Costco (1) → Walmart (2) → Rancho San Miguel (3) → Shun Fat (4)
+// Priority order: Costco (1) → Walmart (2) → Target (3) → Rancho San Miguel (4) → Shun Fat (5)
 const STORE_MAPPING: { keywords: string[]; store: string; priority: number }[] = [
   // Costco - bulk proteins, dairy, produce, pantry staples (PRIORITY 1)
   {
@@ -41,7 +42,15 @@ const STORE_MAPPING: { keywords: string[]; store: string; priority: number }[] =
     store: STORES.WALMART,
     priority: 2
   },
-  // Rancho San Miguel - Mexican groceries (PRIORITY 3)
+  // Target - specialty items, organic, quick trips (PRIORITY 3)
+  {
+    keywords: [
+      "organic", "good & gather", "hummus", "pita", "feta", "tzatziki", "cauliflower rice",
+    ],
+    store: STORES.TARGET,
+    priority: 3
+  },
+  // Rancho San Miguel - Mexican groceries (PRIORITY 4)
   {
     keywords: [
       "chipotle", "adobo", "tomatillo", "cotija", "queso fresco", "chorizo", "carnitas", "al pastor",
@@ -49,9 +58,9 @@ const STORE_MAPPING: { keywords: string[]; store: string; priority: number }[] =
       "achiote", "epazote", "crema", "mexican cheese", "oaxaca",
     ],
     store: STORES.RANCHO_SAN_MIGUEL,
-    priority: 3
+    priority: 4
   },
-  // Shun Fat Asian Market - Asian groceries (PRIORITY 4)
+  // Shun Fat Asian Market - Asian groceries (PRIORITY 5)
   {
     keywords: [
       "soy sauce", "tamari", "sesame oil", "rice vinegar", "fish sauce", "hoisin", "sriracha",
@@ -59,7 +68,7 @@ const STORE_MAPPING: { keywords: string[]; store: string; priority: number }[] =
       "sake", "mirin", "sushi rice", "wonton", "dumpling",
     ],
     store: STORES.SHUN_FAT,
-    priority: 4
+    priority: 5
   },
 ];
 
