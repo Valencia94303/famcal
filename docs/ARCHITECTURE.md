@@ -13,8 +13,11 @@ Technical documentation for IT personnel and developers.
 5. [API Reference](#api-reference)
 6. [Component Architecture](#component-architecture)
 7. [Data Flow](#data-flow)
-8. [Security Considerations](#security-considerations)
-9. [Performance Optimization](#performance-optimization)
+8. [Meal Planning System](#meal-planning-system)
+9. [NFC Card & POS System](#nfc-card--pos-system)
+10. [Member Portal](#member-portal)
+11. [Security Considerations](#security-considerations)
+12. [Performance Optimization](#performance-optimization)
 
 ---
 
@@ -386,6 +389,165 @@ Dashboard
 
 ---
 
+## Meal Planning System
+
+### Overview
+
+FamCal includes a comprehensive meal planning system with:
+- **Recipe Database**: 21+ recipes with ingredients, instructions, and nutritional info
+- **4-Week Rotating Meal Plan**: Configurable weekly menus
+- **Per-Member Variations**: Dietary adaptations (low-carb, no-spinach, etc.)
+- **Rating System**: Family feedback with 1-5 stars
+- **Shopping List Generator**: Auto-generates lists from recipes, grouped by store
+
+### Database Models
+
+```
+┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
+│     Recipe      │       │  MealPlanItem   │       │  RecipeRating   │
+├─────────────────┤       ├─────────────────┤       ├─────────────────┤
+│ id (PK)         │       │ id (PK)         │       │ id (PK)         │
+│ name            │◄──────│ recipeId (FK)   │       │ recipeId (FK)   │
+│ ingredients     │       │ weekNumber 1-4  │       │ familyMemberId  │
+│ instructions    │       │ dayOfWeek       │       │ rating 1-5      │
+│ prepTime        │       │ mealType        │       │ notes           │
+│ cookTime        │       │ customMeal      │       │ wouldMakeAgain  │
+│ servings        │       │ notes           │       └─────────────────┘
+│ cuisine         │       └─────────────────┘
+│ tags            │
+└─────────────────┘       ┌─────────────────┐       ┌──────────────────┐
+                          │RecipeVariation  │       │DietaryPreference │
+                          ├─────────────────┤       ├──────────────────┤
+                          │ recipeId (FK)   │       │ familyMemberId   │
+                          │ familyMemberId  │       │ targetCalories   │
+                          │ variation       │       │ targetProtein    │
+                          │ calories        │       │ restrictions     │
+                          │ protein         │       │ fastingSchedule  │
+                          └─────────────────┘       └──────────────────┘
+```
+
+### Meal Plan API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/recipes` | List all recipes |
+| POST | `/api/recipes` | Create recipe |
+| GET | `/api/recipes/[id]` | Get recipe details |
+| PUT | `/api/recipes/[id]` | Update recipe |
+| POST | `/api/recipes/[id]/rate` | Rate a recipe |
+| GET | `/api/meal-plan` | Get meal plan |
+| POST | `/api/meal-plan` | Create/update meal plan item |
+| GET | `/api/meal-plan/today` | Get today's meals (for dashboard) |
+| GET | `/api/meal-plan/shopping-list` | Generate shopping list |
+
+### Store Mapping
+
+Shopping list items are auto-assigned to stores based on ingredients:
+
+| Store | Priority | Items |
+|-------|----------|-------|
+| Costco | 1 | Bulk proteins, dairy, oils |
+| Walmart | 2 | Produce, pantry staples |
+| Target | 3 | Specialty, organic |
+| Rancho San Miguel | 4 | Mexican ingredients |
+| Shun Fat | 5 | Asian ingredients |
+
+---
+
+## NFC Card & POS System
+
+### Overview
+
+Kids can use NFC cards like "credit cards" to:
+- Earn points by completing chores
+- Spend points on rewards
+- Track balances in real-time
+
+### Architecture
+
+```
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│   NFC Card   │───▶│  Phone/Tablet│───▶│   POS Page   │
+│  (Physical)  │    │  (NFC Reader)│    │ /pos?card=X  │
+└──────────────┘    └──────────────┘    └──────┬───────┘
+                                               │
+                    ┌──────────────────────────┼──────────────────────────┐
+                    │                          ▼                          │
+                    │  ┌─────────────┐   ┌───────────┐   ┌────────────┐  │
+                    │  │ Card Lookup │──▶│  Member   │──▶│  Balance   │  │
+                    │  │   API       │   │   Data    │   │  Display   │  │
+                    │  └─────────────┘   └───────────┘   └────────────┘  │
+                    │                                                     │
+                    │  ┌─────────────────────────────────────────────┐   │
+                    │  │              POS Interface                   │   │
+                    │  │  ┌─────────────┐     ┌─────────────┐        │   │
+                    │  │  │   EARN      │     │   SPEND     │        │   │
+                    │  │  │  • Chores   │     │  • Rewards  │        │   │
+                    │  │  │  • Custom + │     │  • Custom - │        │   │
+                    │  │  └─────────────┘     └─────────────┘        │   │
+                    │  └─────────────────────────────────────────────┘   │
+                    └─────────────────────────────────────────────────────┘
+```
+
+### NFC Card Registration
+
+Cards are registered via the `/manage` admin panel:
+1. Click the credit card icon next to a family member
+2. Enter the card ID (from NFC reader)
+3. Card is linked to that member's account
+
+### POS API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/member/card/[cardId]` | Look up member by card |
+| POST | `/api/member/card/[cardId]` | Register card to member |
+| DELETE | `/api/member/card/[cardId]` | Unregister card |
+| POST | `/api/points/adjust` | Manual point add/subtract |
+
+### QR Codes
+
+QR codes are generated for each NFC card URL:
+- Location: `/public/qr-codes/[name]-pos-qr.png`
+- URL format: `http://[IP]:3000/pos?card=[cardId]`
+- Generation script: `scripts/generate-qr-codes.js`
+
+---
+
+## Member Portal
+
+### Overview
+
+Kid-friendly portal for viewing and interacting with their data:
+- View assigned chores and earn points
+- See available rewards and redeem them
+- Rate recent meals (today + past 2 days)
+- Check point balance and transaction history
+
+### Access
+
+- URL: `/member/[memberId]`
+- QR codes generated for easy access
+- No authentication required (family-only network)
+
+### Features
+
+| Tab | Features |
+|-----|----------|
+| **Chores** | View assigned, mark complete, earn points |
+| **Rewards** | Browse rewards, redeem with points |
+| **Rate** | Rate meals from past 3 days (1-5 stars) |
+| **Points** | View balance, transaction history |
+
+### Member Portal API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/member/[id]` | Get member dashboard data |
+| GET | `/api/member/[id]` | Includes: chores, rewards, recentMeals, points |
+
+---
+
 ## Security Considerations
 
 ### Current Security Model
@@ -394,11 +556,50 @@ Dashboard
 
 | Aspect | Status | Notes |
 |--------|--------|-------|
-| Authentication | None | No login required |
-| Authorization | None | All endpoints public |
-| HTTPS | Not configured | HTTP only |
+| Authentication | PIN-based | 4-digit PIN for admin panel |
+| Authorization | Route-based | Middleware protects sensitive routes |
+| HTTPS | Not configured | HTTP only (local network) |
 | Input Validation | Basic | Prisma provides SQL injection protection |
 | File Access | Restricted | Photos served from configured path only |
+
+### PIN Authentication
+
+The `/manage` admin panel requires a 4-digit PIN:
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Request   │────▶│  Middleware │────▶│   Route     │
+│             │     │   Check     │     │   Handler   │
+└─────────────┘     └──────┬──────┘     └─────────────┘
+                           │
+                    ┌──────┴──────┐
+                    │ Has Cookie? │
+                    └──────┬──────┘
+                           │
+              ┌────────────┼────────────┐
+              │            │            │
+              ▼            ▼            ▼
+         ┌────────┐  ┌──────────┐  ┌──────────┐
+         │  Yes   │  │    No    │  │  Public  │
+         │ Allow  │  │ Redirect │  │  Route   │
+         └────────┘  │ /unlock  │  │  Allow   │
+                     └──────────┘  └──────────┘
+```
+
+**Protected Routes (require PIN):**
+- `/manage/*` (except `/manage/unlock`)
+- `/api/settings`
+- `/api/backup/*`
+- `/api/auth/pin/change`
+
+**Public Routes (no PIN required):**
+- `/` (dashboard)
+- `/member/*` (member portal)
+- `/pos` (point of sale)
+- `/api/family` (GET only)
+- `/api/shopping` (GET only)
+- `/api/meal-plan/today`
+- `/api/points/*`
 
 ### Path Traversal Protection
 

@@ -660,6 +660,360 @@ flowchart TB
 
 ---
 
+## Meal Planning System
+
+Complete flow for meal planning, recipes, and shopping list generation.
+
+```mermaid
+flowchart TB
+    subgraph RECIPES["Recipe Database"]
+        R1["21+ Recipes"]
+        R2["Ingredients JSON"]
+        R3["Instructions"]
+        R4["Nutritional Info"]
+    end
+
+    subgraph MEALPLAN["4-Week Meal Plan"]
+        MP1["Week 1-4"]
+        MP2["Day of Week"]
+        MP3["Meal Type<br/>Lunch/Dinner"]
+        MP4["Custom Meals"]
+    end
+
+    subgraph VARIATIONS["Per-Member Variations"]
+        V1["Dad: Low-carb"]
+        V2["Mom: No spinach"]
+        V3["Kids: Kid-friendly"]
+    end
+
+    subgraph SHOPPING["Shopping List Generator"]
+        SH1["Parse Ingredients"]
+        SH2["Map to Stores"]
+        SH3["Group by Store"]
+    end
+
+    subgraph STORES["Stockton, CA Stores"]
+        ST1["🏪 Costco"]
+        ST2["🛒 Walmart"]
+        ST3["🎯 Target"]
+        ST4["🌮 Rancho San Miguel"]
+        ST5["🥢 Shun Fat"]
+    end
+
+    RECIPES --> MEALPLAN
+    MEALPLAN --> VARIATIONS
+    MEALPLAN --> SHOPPING
+    SHOPPING --> SH1
+    SH1 --> SH2
+    SH2 --> SH3
+    SH3 --> STORES
+```
+
+---
+
+## NFC Card & POS Flow
+
+Point of Sale system for kids to earn/spend points with NFC cards.
+
+```mermaid
+flowchart LR
+    subgraph PHYSICAL["Physical Layer"]
+        NFC["📇 NFC Card"]
+        PHONE["📱 Phone/Tablet"]
+    end
+
+    subgraph POS_PAGE["POS Interface (/pos)"]
+        SCAN["Scan Card"]
+        LOOKUP["Card Lookup"]
+        MEMBER["Member Data"]
+        BALANCE["Balance Display"]
+
+        subgraph ACTIONS["Actions"]
+            EARN["➕ EARN"]
+            SPEND["➖ SPEND"]
+        end
+    end
+
+    subgraph EARN_OPTS["Earn Options"]
+        CHORES["Complete Chores"]
+        CUSTOM_ADD["Custom Amount"]
+    end
+
+    subgraph SPEND_OPTS["Spend Options"]
+        REWARDS["Redeem Rewards"]
+        CUSTOM_SUB["Custom Deduction"]
+    end
+
+    subgraph DATABASE["Database"]
+        PT["PointTransaction"]
+        FM["FamilyMember"]
+    end
+
+    NFC -->|"tap"| PHONE
+    PHONE -->|"URL + cardId"| SCAN
+    SCAN --> LOOKUP
+    LOOKUP --> MEMBER
+    MEMBER --> BALANCE
+    BALANCE --> ACTIONS
+    EARN --> EARN_OPTS
+    SPEND --> SPEND_OPTS
+    EARN_OPTS -->|"+points"| PT
+    SPEND_OPTS -->|"-points"| PT
+    PT --> FM
+```
+
+---
+
+## Member Portal Flow
+
+Kid-friendly portal for chores, rewards, and meal ratings.
+
+```mermaid
+flowchart TB
+    subgraph ACCESS["Access Methods"]
+        QR["📱 QR Code Scan"]
+        URL["🔗 Direct URL"]
+        PORTAL["Member Portal<br/>/member/[id]"]
+    end
+
+    subgraph TABS["Portal Tabs"]
+        CHORES_TAB["📋 Chores"]
+        REWARDS_TAB["🎁 Rewards"]
+        RATE_TAB["⭐ Rate Meals"]
+        POINTS_TAB["💰 Points"]
+    end
+
+    subgraph CHORES_SECTION["Chores Section"]
+        ASSIGNED["View Assigned"]
+        COMPLETE["Mark Complete"]
+        EARN_PTS["Earn Points"]
+    end
+
+    subgraph REWARDS_SECTION["Rewards Section"]
+        BROWSE["Browse Available"]
+        AFFORD["Check Affordability"]
+        REDEEM["Redeem"]
+    end
+
+    subgraph RATE_SECTION["Rate Meals Section"]
+        TODAY["Today's Meals"]
+        YESTERDAY["Yesterday"]
+        TWO_DAYS["2 Days Ago"]
+        STARS["1-5 Star Rating"]
+    end
+
+    QR --> PORTAL
+    URL --> PORTAL
+    PORTAL --> TABS
+    CHORES_TAB --> CHORES_SECTION
+    REWARDS_TAB --> REWARDS_SECTION
+    RATE_TAB --> RATE_SECTION
+    ASSIGNED --> COMPLETE
+    COMPLETE --> EARN_PTS
+    BROWSE --> AFFORD
+    AFFORD -->|"sufficient"| REDEEM
+    TODAY --> STARS
+    YESTERDAY --> STARS
+    TWO_DAYS --> STARS
+```
+
+---
+
+## PIN Authentication Flow
+
+Middleware-based authentication for admin routes.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Browser
+    participant Middleware
+    participant API
+    participant Cookie
+
+    Note over User,Cookie: Access Protected Route
+
+    User->>Browser: Navigate to /manage
+    Browser->>Middleware: GET /manage
+    Middleware->>Cookie: Check famcal-pin-session
+
+    alt No Cookie
+        Middleware->>Browser: Redirect /manage/unlock
+        Browser->>User: Show PIN Entry
+        User->>Browser: Enter 4-digit PIN
+        Browser->>API: POST /api/auth/pin/verify
+        API->>API: Validate PIN
+        alt Valid PIN
+            API->>Cookie: Set famcal-pin-session
+            API->>Browser: Success
+            Browser->>Middleware: Retry /manage
+            Middleware->>Browser: Allow Access
+        else Invalid PIN
+            API->>Browser: 401 Unauthorized
+            Browser->>User: Show Error
+        end
+    else Has Cookie
+        Middleware->>Browser: Allow Access
+        Browser->>User: Show Admin Panel
+    end
+```
+
+---
+
+## Shopping List Generation
+
+How meal plan ingredients become a grouped shopping list.
+
+```mermaid
+flowchart TB
+    subgraph INPUT["Input"]
+        WEEKS["Selected Weeks<br/>(2, 3, 4)"]
+        MEALS["MealPlanItems"]
+        RECIPES["Recipes"]
+    end
+
+    subgraph PROCESS["Processing"]
+        FETCH["Fetch Meal Plan Items"]
+        PARSE["Parse Recipe Ingredients"]
+        NORMALIZE["Normalize Names"]
+        AGGREGATE["Aggregate Quantities"]
+    end
+
+    subgraph MAPPING["Store Mapping"]
+        KEYWORDS["Match Keywords"]
+        PRIORITY["Apply Priority"]
+        ASSIGN["Assign to Store"]
+    end
+
+    subgraph OUTPUT["Output"]
+        subgraph COSTCO["🏪 Costco"]
+            C1["Chicken Thighs"]
+            C2["Greek Yogurt"]
+            C3["Olive Oil"]
+        end
+        subgraph WALMART["🛒 Walmart"]
+            W1["Onions"]
+            W2["Garlic"]
+            W3["Rice"]
+        end
+        subgraph RSM["🌮 Rancho San Miguel"]
+            R1["Tortillas"]
+            R2["Chorizo"]
+        end
+        subgraph SF["🥢 Shun Fat"]
+            S1["Soy Sauce"]
+            S2["Sesame Oil"]
+        end
+    end
+
+    WEEKS --> FETCH
+    MEALS --> FETCH
+    FETCH --> PARSE
+    RECIPES --> PARSE
+    PARSE --> NORMALIZE
+    NORMALIZE --> AGGREGATE
+    AGGREGATE --> KEYWORDS
+    KEYWORDS --> PRIORITY
+    PRIORITY --> ASSIGN
+    ASSIGN --> COSTCO
+    ASSIGN --> WALMART
+    ASSIGN --> RSM
+    ASSIGN --> SF
+```
+
+---
+
+## Updated Database Schema
+
+Complete ERD including meal planning and NFC features.
+
+```mermaid
+erDiagram
+    FamilyMember ||--o{ ChoreAssignment : "assigned to"
+    FamilyMember ||--o{ ChoreCompletion : "completes"
+    FamilyMember ||--o{ PointTransaction : "earns/spends"
+    FamilyMember ||--o{ RewardRedemption : "requests"
+    FamilyMember ||--o{ HabitLog : "logs"
+    FamilyMember ||--o{ RecipeRating : "rates"
+    FamilyMember ||--o| DietaryPreference : "has"
+    FamilyMember ||--o{ RecipeVariation : "has variation"
+
+    Chore ||--o{ ChoreAssignment : "has"
+    Chore ||--o{ ChoreCompletion : "tracked by"
+    Reward ||--o{ RewardRedemption : "redeemed as"
+    Habit ||--o{ HabitLog : "logged in"
+
+    Recipe ||--o{ MealPlanItem : "scheduled in"
+    Recipe ||--o{ RecipeRating : "rated by"
+    Recipe ||--o{ RecipeVariation : "adapted for"
+
+    FamilyMember {
+        string id PK
+        string name
+        string avatar
+        string color
+        string role
+        string nfcCardId UK "NFC Card ID"
+    }
+
+    Recipe {
+        string id PK
+        string name
+        string ingredients "JSON array"
+        string instructions "JSON array"
+        int prepTime
+        int cookTime
+        string cuisine
+        string tags "JSON array"
+    }
+
+    MealPlanItem {
+        string id PK
+        string recipeId FK
+        int weekNumber "1-4"
+        string dayOfWeek
+        string mealType "LUNCH/DINNER"
+        string customMeal "Optional"
+    }
+
+    RecipeRating {
+        string id PK
+        string recipeId FK
+        string familyMemberId FK
+        int rating "1-5"
+        string notes
+        boolean wouldMakeAgain
+    }
+
+    RecipeVariation {
+        string id PK
+        string recipeId FK
+        string familyMemberId FK
+        string variation
+        int calories
+        int protein
+    }
+
+    DietaryPreference {
+        string id PK
+        string familyMemberId FK UK
+        int targetCalories
+        int targetProtein
+        string restrictions "JSON"
+        string fastingSchedule
+    }
+
+    PointTransaction {
+        string id PK
+        string familyMemberId FK
+        int amount
+        string type "CHORE/BONUS/REDEMPTION"
+        string description
+    }
+```
+
+---
+
 ## Viewing These Diagrams
 
 ### On GitHub

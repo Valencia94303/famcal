@@ -6,16 +6,41 @@ A beautiful, animated family dashboard designed for always-on displays like TVs 
 
 ## Features
 
+### Dashboard & Display
 - **Dynamic Photo Mode** - Ken Burns effect slideshow with mini dashboard overlay
 - **Animated Widget Carousel** - 14 playful animation styles for widget transitions
 - **Weather Display** - Real-time weather with temperature-based color coding
-- **Family Management** - Track family members, assign chores, manage points
+- **Theme System** - Auto-adjusting colors based on time of day
+
+### Family & Chore Management
+- **Family Management** - Track family members with avatars and colors
 - **Habit Tracking** - Daily habits with point rewards for kids
 - **Task Management** - Quick tasks with priority and due dates
-- **Shopping Lists** - Organized by store (Costco, Walmart, Target, etc.)
 - **Daily Schedule** - Time-based routine display
 - **Points & Rewards** - Gamified chore system with redeemable rewards
-- **Theme System** - Auto-adjusting colors based on time of day
+
+### Meal Planning System (NEW)
+- **Recipe Database** - 21+ recipes with ingredients, instructions, and nutrition info
+- **4-Week Rotating Meal Plan** - Pre-planned dinners with per-person dietary adaptations
+- **Recipe Ratings** - 1-5 star family ratings with "would make again" tracking
+- **Per-Member Variations** - Dad's low-carb, Mom's no-spinach, kid-friendly versions
+- **Auto Shopping Lists** - Generate shopping lists from meal plan ingredients
+
+### Shopping & Stores
+- **Smart Shopping Lists** - Combines meal plan ingredients with manual items
+- **Store Prioritization** - Items mapped to preferred stores (Costco, Walmart, Target, Rancho San Miguel, Shun Fat)
+- **Visual Grouping** - Dashboard widget groups by store with icons
+
+### NFC Card & POS System (NEW)
+- **NFC Card Registration** - Assign NFC cards to family members
+- **Point of Sale Interface** - Kids tap card to view balance, earn/spend points
+- **QR Code Generation** - Scannable QR codes for card URLs
+- **Member Portal** - Kid-friendly portal for chores, rewards, and meal ratings
+
+### Security
+- **PIN Authentication** - 4-digit PIN protects admin panel
+- **Public Dashboard** - Dashboard widgets accessible without auth
+- **Session Cookies** - Secure session management
 
 ## Quick Start
 
