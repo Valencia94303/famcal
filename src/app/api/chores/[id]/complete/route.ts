@@ -20,52 +20,63 @@ export async function POST(
 
     const today = startOfDay(new Date());
 
-    // Check if already completed today
-    const existingCompletion = await prisma.choreCompletion.findFirst({
-      where: {
-        choreId: id,
-        scheduledFor: today,
-      },
+    // Use transaction to prevent race condition (duplicate completions)
+    // Check and create happen atomically
+    const result = await prisma.$transaction(async (tx) => {
+      // Check if already completed today (inside transaction)
+      const existingCompletion = await tx.choreCompletion.findFirst({
+        where: {
+          choreId: id,
+          scheduledFor: today,
+        },
+      });
+
+      if (existingCompletion) {
+        return { error: "Chore already completed today" };
+      }
+
+      const completion = await tx.choreCompletion.create({
+        data: {
+          choreId: id,
+          completedById,
+          scheduledFor: today,
+        },
+        include: {
+          completedBy: true,
+          chore: true,
+        },
+      });
+
+      // Award points if the completing member is a CHILD and chore has points
+      let pointsAwarded = 0;
+      if (
+        completion.chore.points > 0 &&
+        completion.completedBy.role === "CHILD"
+      ) {
+        await tx.pointTransaction.create({
+          data: {
+            familyMemberId: completedById,
+            amount: completion.chore.points,
+            type: "CHORE_COMPLETION",
+            description: `Completed: ${completion.chore.title}`,
+            choreCompletionId: completion.id,
+          },
+        });
+        pointsAwarded = completion.chore.points;
+      }
+
+      return { completion, pointsAwarded };
     });
 
-    if (existingCompletion) {
+    // Handle already completed (returned from transaction)
+    if ("error" in result) {
       return NextResponse.json(
-        { error: "Chore already completed today" },
+        { error: result.error },
         { status: 400 }
       );
     }
 
-    const completion = await prisma.choreCompletion.create({
-      data: {
-        choreId: id,
-        completedById,
-        scheduledFor: today,
-      },
-      include: {
-        completedBy: true,
-        chore: true,
-      },
-    });
-
-    // Award points if the completing member is a CHILD and chore has points
-    let pointsAwarded = 0;
-    if (
-      completion.chore.points > 0 &&
-      completion.completedBy.role === "CHILD"
-    ) {
-      await prisma.pointTransaction.create({
-        data: {
-          familyMemberId: completedById,
-          amount: completion.chore.points,
-          type: "CHORE_COMPLETION",
-          description: `Completed: ${completion.chore.title}`,
-          choreCompletionId: completion.id,
-        },
-      });
-      pointsAwarded = completion.chore.points;
-    }
-
-    return NextResponse.json({ completion, pointsAwarded }, { status: 201 });
+    return NextResponse.json({ completion: result.completion, pointsAwarded: result.pointsAwarded }, { status: 201 });
   } catch (error) {
     console.error("Error completing chore:", error);
     return NextResponse.json(

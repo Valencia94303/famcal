@@ -78,34 +78,47 @@ export async function POST(request: NextRequest) {
       pointsToSpend = customPointsAmount;
     }
 
-    // Check if the requester has enough points
-    const balanceResult = await prisma.pointTransaction.aggregate({
-      where: { familyMemberId: requestedById },
-      _sum: { amount: true },
+    // Use transaction to prevent race condition (double-spending)
+    // Both balance check and redemption creation happen atomically
+    const result = await prisma.$transaction(async (tx) => {
+      // Check if the requester has enough points (inside transaction)
+      const balanceResult = await tx.pointTransaction.aggregate({
+        where: { familyMemberId: requestedById },
+        _sum: { amount: true },
+      });
+
+      const balance = balanceResult._sum.amount || 0;
+
+      if (balance < pointsToSpend) {
+        return { error: "Insufficient points", balance, required: pointsToSpend };
+      }
+
+      // Create the redemption request (PENDING status)
+      const redemption = await tx.rewardRedemption.create({
+        data: {
+          rewardId,
+          requestedById,
+          pointsSpent: pointsToSpend,
+          status: "PENDING",
+        },
+        include: {
+          reward: true,
+          requestedBy: true,
+        },
+      });
+
+      return { redemption };
     });
 
-    const balance = balanceResult._sum.amount || 0;
-
-    if (balance < pointsToSpend) {
+    // Handle insufficient points (returned from transaction)
+    if ("error" in result) {
       return NextResponse.json(
-        { error: "Insufficient points", balance, required: pointsToSpend },
+        { error: result.error, balance: result.balance, required: result.required },
         { status: 400 }
       );
     }
 
-    // Create the redemption request (PENDING status)
-    const redemption = await prisma.rewardRedemption.create({
-      data: {
-        rewardId,
-        requestedById,
-        pointsSpent: pointsToSpend,
-        status: "PENDING",
-      },
-      include: {
-        reward: true,
-        requestedBy: true,
-      },
-    });
+    const { redemption } = result;
 
     // Create audit log
     await createAuditLog({
