@@ -5,11 +5,11 @@ import { motion } from "framer-motion";
 import { Theme } from "@/lib/theme";
 import { AutoScroll } from "./AutoScroll";
 
-interface MealPlanItem {
+interface DisplayItem {
   name: string;
-  quantities: { quantity: string; unit: string; recipe: string }[];
-  store: string;
-  category: string;
+  quantity: string;
+  unit: string;
+  source: "meal" | "manual";
 }
 
 interface StoreGroup {
@@ -17,7 +17,7 @@ interface StoreGroup {
   label: string;
   color: string;
   icon: string;
-  items: MealPlanItem[];
+  items: DisplayItem[];
 }
 
 interface ShoppingDisplayProps {
@@ -44,45 +44,74 @@ export function ShoppingDisplay({ theme }: ShoppingDisplayProps) {
 
   useEffect(() => {
     fetchItems();
-    // Refresh every 5 minutes
-    const interval = setInterval(fetchItems, 5 * 60 * 1000);
+    // Refresh every 2 minutes
+    const interval = setInterval(fetchItems, 2 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
   const fetchItems = async () => {
     try {
-      // Fetch from meal plan shopping list (weeks 2-4, skipping week 1 which is pantry items)
-      const res = await fetch("/api/meal-plan/shopping-list?week=2");
-      const data = await res.json();
+      // Fetch from both sources in parallel
+      const [mealRes, manualRes] = await Promise.all([
+        fetch("/api/meal-plan/shopping-list?week=2"),
+        fetch("/api/shopping?showChecked=false"),
+      ]);
 
-      if (data.items && data.items.length > 0) {
-        // Group items by store
-        const byStore: Record<string, MealPlanItem[]> = {};
+      const mealData = await mealRes.json();
+      const manualData = await manualRes.json();
 
-        data.items.forEach((item: MealPlanItem) => {
+      // Combine items by store
+      const byStore: Record<string, DisplayItem[]> = {};
+
+      // Add meal plan items
+      if (mealData.items) {
+        mealData.items.forEach((item: { name: string; quantities: { quantity: string; unit: string }[]; store: string }) => {
           const store = item.store || "OTHER";
-          if (!byStore[store]) {
-            byStore[store] = [];
-          }
-          byStore[store].push(item);
+          if (!byStore[store]) byStore[store] = [];
+
+          const totalQty = item.quantities.map((q) => q.quantity).join("+");
+          const unit = item.quantities[0]?.unit || "";
+
+          byStore[store].push({
+            name: item.name,
+            quantity: totalQty,
+            unit,
+            source: "meal",
+          });
         });
-
-        // Convert to array and add store metadata
-        const groups: StoreGroup[] = Object.entries(byStore)
-          .map(([storeId, items]) => ({
-            store: storeId,
-            label: STORES[storeId]?.label || storeId,
-            color: STORES[storeId]?.color || "bg-slate-500",
-            icon: STORES[storeId]?.icon || "📦",
-            items: items.slice(0, 10), // Limit to 10 items per store for display
-          }))
-          .filter((g) => g.items.length > 0)
-          .sort((a, b) => b.items.length - a.items.length) // Sort by item count
-          .slice(0, 4); // Show top 4 stores
-
-        setStoreGroups(groups);
-        setTotalItems(data.totalItems || 0);
       }
+
+      // Add manual shopping items (household goods, etc.)
+      if (manualData.items) {
+        manualData.items.forEach((item: { name: string; quantity: number; unit: string | null; store: string }) => {
+          const store = item.store || "OTHER";
+          if (!byStore[store]) byStore[store] = [];
+
+          byStore[store].push({
+            name: item.name,
+            quantity: String(item.quantity),
+            unit: item.unit || "",
+            source: "manual",
+          });
+        });
+      }
+
+      // Convert to array and add store metadata
+      const groups: StoreGroup[] = Object.entries(byStore)
+        .map(([storeId, items]) => ({
+          store: storeId,
+          label: STORES[storeId]?.label || storeId,
+          color: STORES[storeId]?.color || "bg-slate-500",
+          icon: STORES[storeId]?.icon || "📦",
+          items: items.slice(0, 10), // Limit to 10 items per store for display
+        }))
+        .filter((g) => g.items.length > 0)
+        .sort((a, b) => b.items.length - a.items.length) // Sort by item count
+        .slice(0, 4); // Show top 4 stores
+
+      const total = (mealData.totalItems || 0) + (manualData.items?.length || 0);
+      setStoreGroups(groups);
+      setTotalItems(total);
     } catch (error) {
       console.error("Error fetching shopping items:", error);
     }
@@ -157,31 +186,25 @@ export function ShoppingDisplay({ theme }: ShoppingDisplayProps) {
             {/* Items */}
             <AutoScroll maxHeight="20vh" duration={15}>
               <div className="space-y-2">
-                {group.items.map((item, itemIndex) => {
-                  // Combine quantities
-                  const totalQty = item.quantities
-                    .map((q) => q.quantity)
-                    .join(" + ");
-                  const unit = item.quantities[0]?.unit || "";
-
-                  return (
-                    <motion.div
-                      key={`${item.name}-${itemIndex}`}
-                      className="flex items-center gap-2"
-                      initial={{ opacity: 0, x: 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: storeIndex * 0.1 + itemIndex * 0.05 }}
-                    >
-                      <span className={`text-[1vw] ${theme.textMuted}`}>•</span>
-                      <span className={`text-[1.1vw] ${theme.textPrimary} flex-1 truncate`}>
-                        {item.name}
-                      </span>
-                      <span className={`text-[0.9vw] ${theme.textMuted}`}>
-                        {totalQty} {unit}
-                      </span>
-                    </motion.div>
-                  );
-                })}
+                {group.items.map((item, itemIndex) => (
+                  <motion.div
+                    key={`${item.name}-${itemIndex}`}
+                    className="flex items-center gap-2"
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: storeIndex * 0.1 + itemIndex * 0.05 }}
+                  >
+                    <span className={`text-[1vw] ${theme.textMuted}`}>
+                      {item.source === "manual" ? "◆" : "•"}
+                    </span>
+                    <span className={`text-[1.1vw] ${theme.textPrimary} flex-1 truncate`}>
+                      {item.name}
+                    </span>
+                    <span className={`text-[0.9vw] ${theme.textMuted}`}>
+                      {item.quantity} {item.unit}
+                    </span>
+                  </motion.div>
+                ))}
               </div>
             </AutoScroll>
           </motion.div>
