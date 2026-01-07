@@ -16,6 +16,11 @@ export async function GET() {
       scheduleItems,
       shoppingItems,
       tasks,
+      recipes,
+      recipeRatings,
+      recipeVariations,
+      mealPlanItems,
+      dietaryPreferences,
     ] = await Promise.all([
       prisma.settings.findUnique({ where: { id: "singleton" } }),
       prisma.pointsSettings.findUnique({ where: { id: "singleton" } }),
@@ -41,10 +46,21 @@ export async function GET() {
       prisma.task.findMany({
         orderBy: { createdAt: "asc" },
       }),
+      prisma.recipe.findMany({
+        orderBy: { createdAt: "asc" },
+      }),
+      prisma.recipeRating.findMany({
+        orderBy: { createdAt: "asc" },
+      }),
+      prisma.recipeVariation.findMany(),
+      prisma.mealPlanItem.findMany({
+        orderBy: [{ weekNumber: "asc" }, { dayOfWeek: "asc" }],
+      }),
+      prisma.dietaryPreference.findMany(),
     ]);
 
     const backupData = {
-      version: "1.0",
+      version: "1.1",
       exportedAt: new Date().toISOString(),
       settings,
       pointsSettings,
@@ -56,6 +72,11 @@ export async function GET() {
       scheduleItems,
       shoppingItems,
       tasks,
+      recipes,
+      recipeRatings,
+      recipeVariations,
+      mealPlanItems,
+      dietaryPreferences,
     };
 
     const filename = `famcal-backup-${new Date().toISOString().split("T")[0]}.json`;

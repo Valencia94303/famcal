@@ -93,11 +93,30 @@ export async function POST(request: Request) {
   }
 }
 
-// GET - Check if current session is valid
+// GET - Check if current session is valid (also grants access if PIN is disabled)
 export async function GET() {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("famcal-pin-session")?.value;
+
+    // Check if PIN is enabled
+    const settings = await prisma.settings.findUnique({
+      where: { id: "singleton" },
+      select: { pinEnabled: true },
+    });
+
+    // If PIN is disabled, grant a session automatically
+    if (!settings?.pinEnabled) {
+      const session = await createPinSession();
+      cookieStore.set("famcal-pin-session", session.token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        expires: session.expiresAt,
+        path: "/",
+      });
+      return NextResponse.json({ authenticated: true, pinDisabled: true });
+    }
 
     if (!token) {
       return NextResponse.json({ authenticated: false });

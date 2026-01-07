@@ -32,6 +32,9 @@ const PIN_PROTECTED_API_ROUTES = [
 const PUBLIC_ROUTES = [
   "/",
   "/manage/unlock",
+  "/member", // Member portal for kids
+  "/pos", // Point of Sale for NFC cards
+  "/api/member", // Member API endpoint
   "/api/weather",
   "/api/calendar/events",
   "/api/calendar/status",
@@ -41,6 +44,11 @@ const PUBLIC_ROUTES = [
   "/api/auth/pin/verify",
   "/api/auth/pin/setup",
   "/api/points/balance", // Public for display purposes
+  "/api/points/adjust", // Allow point adjustments from POS
+  "/api/chores", // Allow chore completion from member portal
+  "/api/rewards/redeem", // Allow reward redemption from member portal
+  "/api/recipes", // Allow recipe rating from member portal
+  "/api/meal-plan/today", // Allow viewing today's meals
 ];
 
 // Static files and Next.js internals

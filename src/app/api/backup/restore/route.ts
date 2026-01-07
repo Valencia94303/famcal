@@ -109,6 +109,59 @@ interface BackupData {
     description?: string;
     createdAt?: string;
   }>;
+  recipes?: Array<{
+    id: string;
+    name: string;
+    description?: string;
+    cuisine?: string;
+    icon?: string;
+    prepTime?: number;
+    cookTime?: number;
+    servings: number;
+    difficulty: string;
+    ingredients: string;
+    instructions: string;
+    tips?: string;
+    tags?: string;
+    mealTypes?: string;
+    isActive: boolean;
+  }>;
+  recipeRatings?: Array<{
+    id: string;
+    recipeId: string;
+    familyMemberId?: string;
+    rating: number;
+    notes?: string;
+    wouldMakeAgain: boolean;
+  }>;
+  recipeVariations?: Array<{
+    id: string;
+    recipeId: string;
+    familyMemberId: string;
+    variation: string;
+    calories?: number;
+    protein?: number;
+  }>;
+  mealPlanItems?: Array<{
+    id: string;
+    recipeId?: string;
+    weekNumber: number;
+    dayOfWeek: string;
+    mealType: string;
+    customMeal?: string;
+    notes?: string;
+    isActive: boolean;
+  }>;
+  dietaryPreferences?: Array<{
+    id: string;
+    familyMemberId: string;
+    targetCalories?: number;
+    targetProtein?: number;
+    restrictions?: string;
+    preferences?: string;
+    fastingSchedule?: string;
+    notes?: string;
+  }>;
 }
 
 // POST - Restore from backup JSON
@@ -141,6 +194,12 @@ export async function POST(request: Request) {
       await tx.scheduleItem.deleteMany();
       await tx.shoppingItem.deleteMany();
       await tx.task.deleteMany();
+      // Clear meal planning data
+      await tx.recipeRating.deleteMany();
+      await tx.recipeVariation.deleteMany();
+      await tx.mealPlanItem.deleteMany();
+      await tx.dietaryPreference.deleteMany();
+      await tx.recipe.deleteMany();
       await tx.familyMember.deleteMany();
 
       // Restore settings
@@ -377,6 +436,124 @@ export async function POST(request: Request) {
           }
         }
         restored.pointTransactions = data.pointTransactions.length;
+      }
+
+      // Restore recipes
+      if (data.recipes && data.recipes.length > 0) {
+        for (const recipe of data.recipes) {
+          await tx.recipe.create({
+            data: {
+              id: recipe.id,
+              name: recipe.name,
+              description: recipe.description,
+              cuisine: recipe.cuisine,
+              icon: recipe.icon,
+              prepTime: recipe.prepTime,
+              cookTime: recipe.cookTime,
+              servings: recipe.servings,
+              difficulty: recipe.difficulty,
+              ingredients: recipe.ingredients,
+              instructions: recipe.instructions,
+              tips: recipe.tips,
+              tags: recipe.tags,
+              mealTypes: recipe.mealTypes,
+              isActive: recipe.isActive,
+            },
+          });
+        }
+        restored.recipes = data.recipes.length;
+      }
+
+      // Restore recipe ratings
+      if (data.recipeRatings && data.recipeRatings.length > 0) {
+        for (const rating of data.recipeRatings) {
+          try {
+            await tx.recipeRating.create({
+              data: {
+                id: rating.id,
+                recipeId: rating.recipeId,
+                familyMemberId: rating.familyMemberId,
+                rating: rating.rating,
+                notes: rating.notes,
+                wouldMakeAgain: rating.wouldMakeAgain,
+              },
+            });
+          } catch {
+            // Skip if foreign key constraint fails
+            console.warn(`Skipping rating ${rating.id}: recipe or member not found`);
+          }
+        }
+        restored.recipeRatings = data.recipeRatings.length;
+      }
+
+      // Restore recipe variations
+      if (data.recipeVariations && data.recipeVariations.length > 0) {
+        for (const variation of data.recipeVariations) {
+          try {
+            await tx.recipeVariation.create({
+              data: {
+                id: variation.id,
+                recipeId: variation.recipeId,
+                familyMemberId: variation.familyMemberId,
+                variation: variation.variation,
+                calories: variation.calories,
+                protein: variation.protein,
+              },
+            });
+          } catch {
+            // Skip if foreign key constraint fails
+            console.warn(`Skipping variation ${variation.id}: recipe or member not found`);
+          }
+        }
+        restored.recipeVariations = data.recipeVariations.length;
+      }
+
+      // Restore meal plan items
+      if (data.mealPlanItems && data.mealPlanItems.length > 0) {
+        for (const item of data.mealPlanItems) {
+          try {
+            await tx.mealPlanItem.create({
+              data: {
+                id: item.id,
+                recipeId: item.recipeId,
+                weekNumber: item.weekNumber,
+                dayOfWeek: item.dayOfWeek,
+                mealType: item.mealType,
+                customMeal: item.customMeal,
+                notes: item.notes,
+                isActive: item.isActive,
+              },
+            });
+          } catch {
+            // Skip if foreign key constraint fails
+            console.warn(`Skipping meal plan item ${item.id}: recipe not found`);
+          }
+        }
+        restored.mealPlanItems = data.mealPlanItems.length;
+      }
+
+      // Restore dietary preferences
+      if (data.dietaryPreferences && data.dietaryPreferences.length > 0) {
+        for (const pref of data.dietaryPreferences) {
+          try {
+            await tx.dietaryPreference.create({
+              data: {
+                id: pref.id,
+                familyMemberId: pref.familyMemberId,
+                targetCalories: pref.targetCalories,
+                targetProtein: pref.targetProtein,
+                restrictions: pref.restrictions,
+                preferences: pref.preferences,
+                fastingSchedule: pref.fastingSchedule,
+                notes: pref.notes,
+              },
+            });
+          } catch {
+            // Skip if foreign key constraint fails
+            console.warn(`Skipping dietary preference ${pref.id}: member not found`);
+          }
+        }
+        restored.dietaryPreferences = data.dietaryPreferences.length;
       }
     });
 

@@ -4,7 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MobileNav, TabType, PointsSection, RewardsSection, SettingsSection, TasksSection, ShoppingSection, HabitsSection, ScheduleSection, AuditLogSection } from "@/components/manage";
 import { AvatarPicker } from "@/components/manage/AvatarPicker";
+import { MealsSection } from "@/components/manage/MealsSection";
 import { PinGate } from "@/components/auth/PinGate";
+import { QRCodeSVG } from "qrcode.react";
+import { QrCode, X, CreditCard, Smartphone } from "lucide-react";
 
 interface FamilyMember {
   id: string;
@@ -14,6 +17,7 @@ interface FamilyMember {
   color: string;
   role: string;
   birthday: string | null;
+  nfcCardId: string | null;
 }
 
 interface Chore {
@@ -62,6 +66,10 @@ export default function ManagePage() {
   const [memberBirthday, setMemberBirthday] = useState("");
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
+  const [qrMember, setQrMember] = useState<FamilyMember | null>(null);
+  const [nfcMember, setNfcMember] = useState<FamilyMember | null>(null);
+  const [nfcCardInput, setNfcCardInput] = useState("");
+  const [posQrMember, setPosQrMember] = useState<FamilyMember | null>(null);
 
   // Chore form state
   const [showChoreForm, setShowChoreForm] = useState(false);
@@ -168,6 +176,39 @@ export default function ManagePage() {
     setMemberAvatar(avatar);
     setMemberAvatarType(type);
     setShowAvatarPicker(false);
+  };
+
+  const handleRegisterNfcCard = async () => {
+    if (!nfcMember || !nfcCardInput.trim()) return;
+    try {
+      const res = await fetch(`/api/member/card/${nfcCardInput.trim()}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ memberId: nfcMember.id }),
+      });
+      if (res.ok) {
+        alert(`Card registered to ${nfcMember.name}!`);
+        setNfcMember(null);
+        setNfcCardInput("");
+        fetchData();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to register card");
+      }
+    } catch (error) {
+      console.error("Error registering card:", error);
+    }
+  };
+
+  const handleUnregisterNfcCard = async (member: FamilyMember) => {
+    if (!member.nfcCardId) return;
+    if (!confirm(`Remove NFC card from ${member.name}?`)) return;
+    try {
+      await fetch(`/api/member/card/${member.nfcCardId}`, { method: "DELETE" });
+      fetchData();
+    } catch (error) {
+      console.error("Error unregistering card:", error);
+    }
   };
 
   // Chore functions
@@ -465,6 +506,40 @@ export default function ManagePage() {
                               {member.role === "PARENT" ? "Parent" : "Child"}
                             </p>
                           </div>
+                          <button
+                            onClick={() => {
+                              if (member.nfcCardId) {
+                                handleUnregisterNfcCard(member);
+                              } else {
+                                setNfcMember(member);
+                                setNfcCardInput("");
+                              }
+                            }}
+                            className={`p-2 rounded-lg min-h-[40px] ${
+                              member.nfcCardId
+                                ? "text-green-600 hover:bg-green-50"
+                                : "text-slate-400 hover:bg-slate-100"
+                            }`}
+                            title={member.nfcCardId ? "Card registered (click to remove)" : "Register NFC Card"}
+                          >
+                            <CreditCard className="w-5 h-5" />
+                          </button>
+                          {member.nfcCardId && (
+                            <button
+                              onClick={() => setPosQrMember(member)}
+                              className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg min-h-[40px]"
+                              title="Show POS QR Code"
+                            >
+                              <Smartphone className="w-5 h-5" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setQrMember(member)}
+                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg min-h-[40px]"
+                            title="Show QR Code"
+                          >
+                            <QrCode className="w-5 h-5" />
+                          </button>
                           <button
                             onClick={() => editMember(member)}
                             className="px-3 py-2 text-slate-600 hover:bg-slate-200 rounded-lg min-h-[40px]"
@@ -781,6 +856,18 @@ export default function ManagePage() {
               </motion.div>
             )}
 
+            {/* Meals Tab */}
+            {tab === "meals" && (
+              <motion.div
+                key="meals"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+              >
+                <MealsSection />
+              </motion.div>
+            )}
+
             {/* Schedule Tab */}
             {tab === "schedule" && (
               <motion.div
@@ -860,6 +947,188 @@ export default function ManagePage() {
           onSelect={handleAvatarSelect}
           onClose={() => setShowAvatarPicker(false)}
         />
+      )}
+
+      {/* QR Code Modal */}
+      {qrMember && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl p-6 max-w-sm w-full text-center"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-slate-800">
+                {qrMember.name}&apos;s Portal
+              </h3>
+              <button
+                onClick={() => setQrMember(null)}
+                className="p-2 hover:bg-slate-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-white p-4 rounded-xl inline-block mb-4">
+              <QRCodeSVG
+                value={`${typeof window !== "undefined" ? window.location.origin : ""}/member/${qrMember.name.toLowerCase()}`}
+                size={200}
+                level="M"
+                includeMargin
+              />
+            </div>
+
+            <p className="text-sm text-slate-600 mb-4">
+              Scan this code to open {qrMember.name}&apos;s personal portal
+            </p>
+
+            <div className="bg-slate-100 rounded-lg p-3 text-sm text-slate-700 break-all">
+              {typeof window !== "undefined" ? window.location.origin : ""}/member/{qrMember.name.toLowerCase()}
+            </div>
+
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(
+                  `${window.location.origin}/member/${qrMember.name.toLowerCase()}`
+                );
+                alert("Link copied!");
+              }}
+              className="mt-4 w-full py-3 bg-indigo-600 text-white rounded-xl font-medium"
+            >
+              Copy Link
+            </button>
+          </motion.div>
+        </div>
+      )}
+
+      {/* NFC Card Registration Modal */}
+      {nfcMember && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl p-6 max-w-sm w-full"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-slate-800">
+                Register NFC Card
+              </h3>
+              <button
+                onClick={() => setNfcMember(null)}
+                className="p-2 hover:bg-slate-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="text-center mb-6">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-2"
+                style={{ backgroundColor: nfcMember.color }}
+              >
+                {nfcMember.avatar}
+              </div>
+              <p className="font-semibold text-slate-800">{nfcMember.name}</p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-2">
+                  Card ID
+                </label>
+                <input
+                  type="text"
+                  value={nfcCardInput}
+                  onChange={(e) => setNfcCardInput(e.target.value)}
+                  placeholder="Scan card or enter ID..."
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-base"
+                  autoFocus
+                />
+                <p className="text-xs text-slate-500 mt-2">
+                  Scan the NFC card with your phone, or manually enter the card ID
+                </p>
+              </div>
+
+              <div className="bg-blue-50 rounded-xl p-4">
+                <p className="text-sm text-blue-800">
+                  <strong>POS URL:</strong> After registering, program the NFC card to open:
+                </p>
+                <code className="block mt-2 text-xs bg-white rounded p-2 break-all">
+                  {typeof window !== "undefined" ? window.location.origin : ""}/pos?card=CARD_ID
+                </code>
+              </div>
+
+              <button
+                onClick={handleRegisterNfcCard}
+                disabled={!nfcCardInput.trim()}
+                className="w-full py-3 bg-green-600 text-white rounded-xl font-medium disabled:opacity-50"
+              >
+                Register Card
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* POS QR Code Modal */}
+      {posQrMember && posQrMember.nfcCardId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl p-6 max-w-sm w-full text-center"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-slate-800">
+                {posQrMember.name}&apos;s POS Card
+              </h3>
+              <button
+                onClick={() => setPosQrMember(null)}
+                className="p-2 hover:bg-slate-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-white p-4 rounded-xl inline-block mb-4 border-2 border-purple-200">
+              <QRCodeSVG
+                value={`http://192.168.1.47:3000/pos?card=${posQrMember.nfcCardId}`}
+                size={200}
+                level="M"
+                includeMargin
+              />
+            </div>
+
+            <p className="text-sm text-slate-600 mb-4">
+              Scan this code to open {posQrMember.name}&apos;s Point of Sale
+            </p>
+
+            <div className="bg-purple-50 rounded-lg p-3 text-sm text-purple-700 break-all mb-4">
+              http://192.168.1.47:3000/pos?card={posQrMember.nfcCardId}
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    `http://192.168.1.47:3000/pos?card=${posQrMember.nfcCardId}`
+                  );
+                  alert("Link copied!");
+                }}
+                className="flex-1 py-3 bg-purple-600 text-white rounded-xl font-medium"
+              >
+                Copy Link
+              </button>
+              <a
+                href={`/qr-codes/${posQrMember.name.toLowerCase()}-pos-qr.png`}
+                download={`${posQrMember.name.toLowerCase()}-pos-qr.png`}
+                className="flex-1 py-3 bg-slate-200 text-slate-700 rounded-xl font-medium text-center"
+              >
+                Download PNG
+              </a>
+            </div>
+          </motion.div>
+        </div>
       )}
     </div>
     </PinGate>

@@ -31,24 +31,18 @@ function UnlockContent() {
   const checkPinStatus = async () => {
     setIsLoading(true);
     try {
-      // Check PIN status
-      const statusRes = await fetch("/api/auth/pin/status");
-      const statusData = await statusRes.json();
-      setStatus(statusData);
-
-      // If PIN is not enabled, redirect directly
-      if (!statusData.enabled) {
-        router.push(redirectTo);
-        return;
-      }
-
-      // If already authenticated, redirect
+      // Check authentication first - this also handles PIN disabled case by setting a cookie
       const authRes = await fetch("/api/auth/pin/verify");
       const authData = await authRes.json();
       if (authData.authenticated) {
         router.push(redirectTo);
         return;
       }
+
+      // Check PIN status for UI display
+      const statusRes = await fetch("/api/auth/pin/status");
+      const statusData = await statusRes.json();
+      setStatus(statusData);
     } catch (error) {
       console.error("Error checking PIN status:", error);
     }

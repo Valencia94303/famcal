@@ -73,6 +73,7 @@ model FamilyMember {
   role        String    @default("CHILD") // PARENT or CHILD
   email       String?   @unique
   birthday    DateTime? // For birthday reminders
+  nfcCardId   String?   @unique // NFC card ID for point-of-sale transactions
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -82,6 +83,11 @@ model FamilyMember {
   redemptionsRequested RewardRedemption[] @relation("RedemptionRequester")
   redemptionsApproved  RewardRedemption[] @relation("RedemptionApprover")
   habitLogs            HabitLog[]
+
+  // Meal planning relations
+  recipeRatings      RecipeRating[]
+  recipeVariations   RecipeVariation[]
+  dietaryPreference  DietaryPreference?
 }
 
 // Avatar library for pre-made avatars
@@ -439,4 +445,117 @@ model AuditLog {
   @@index([entityId])
   @@index([performedBy])
   @@index([createdAt])
+}
+
+// ============================================
+// Meal Planning & Recipes
+// ============================================
+
+// Recipe with full cooking details
+model Recipe {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  cuisine      String?  // "Mexican", "Asian", "Mediterranean", etc.
+  icon         String?  // Emoji
+
+  // Cooking details
+  prepTime     Int?     // Minutes
+  cookTime     Int?     // Minutes
+  servings     Int      @default(4)
+  difficulty   String   @default("EASY") // EASY, MEDIUM, HARD
+
+  // Content (stored as JSON for flexibility)
+  ingredients  String   // JSON array: [{name, quantity, unit, notes}]
+  instructions String   // JSON array of steps
+  tips         String?  // JSON array of tips/notes
+
+  // Categorization
+  tags         String?  // JSON array: ["high-protein", "kid-friendly", "quick"]
+  mealTypes    String?  // JSON array: ["BREAKFAST", "LUNCH", "DINNER", "SNACK"]
+
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  ratings       RecipeRating[]
+  mealPlanItems MealPlanItem[]
+  variations    RecipeVariation[]
+
+  @@index([cuisine])
+  @@index([isActive])
+}
+
+// Per-family-member recipe variations (dietary adaptations)
+model RecipeVariation {
+  id             String       @id @default(cuid())
+  recipe         Recipe       @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  recipeId       String
+  familyMember   FamilyMember @relation(fields: [familyMemberId], references: [id], onDelete: Cascade)
+  familyMemberId String
+
+  variation      String       // Description: "Serve over cabbage instead of rice"
+  calories       Int?         // Adjusted calories for this variation
+  protein        Int?         // Adjusted protein (grams)
+
+  @@unique([recipeId, familyMemberId])
+}
+
+// Recipe ratings (family feedback)
+model RecipeRating {
+  id             String        @id @default(cuid())
+  recipe         Recipe        @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  recipeId       String
+  familyMember   FamilyMember? @relation(fields: [familyMemberId], references: [id], onDelete: SetNull)
+  familyMemberId String?       // null = family-wide rating
+
+  rating         Int           // 1-5 stars
+  notes          String?       // "Kids loved it!", "Too spicy"
+  wouldMakeAgain Boolean       @default(true)
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([recipeId])
+  @@index([familyMemberId])
+}
+
+// Meal plan entries (which recipe on which day)
+model MealPlanItem {
+  id        String   @id @default(cuid())
+  recipe    Recipe?  @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  recipeId  String?
+
+  // Scheduling
+  weekNumber Int      // 1-4 for 4-week rotation
+  dayOfWeek  String   // MON, TUE, WED, THU, FRI, SAT, SUN
+  mealType   String   // BREAKFAST, LUNCH, DINNER, SNACK
+
+  // Override fields (for custom/quick entries without full recipe)
+  customMeal String?  // "Leftovers", "Eating out"
+  notes      String?
+
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([weekNumber, dayOfWeek, mealType])
+  @@index([weekNumber])
+  @@index([dayOfWeek])
+}
+
+// Family member dietary preferences (for smart suggestions)
+model DietaryPreference {
+  id              String       @id @default(cuid())
+  familyMember    FamilyMember @relation(fields: [familyMemberId], references: [id], onDelete: Cascade)
+  familyMemberId  String       @unique
+
+  targetCalories  Int?
+  targetProtein   Int?          // grams
+  restrictions    String?       // JSON array: ["no-spinach", "no-nuts"]
+  preferences     String?       // JSON array: ["loves-caesar", "prefers-low-carb"]
+  fastingSchedule String?       // "18:6", "16:8", etc.
+  notes           String?
+
+  updatedAt       DateTime      @updatedAt
 }
