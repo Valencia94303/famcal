@@ -30,7 +30,7 @@ const STORES: Record<string, { label: string; color: string; icon: string }> = {
   WINCO: { label: "WinCo", color: "bg-yellow-500", icon: "🛒" },
   WALMART: { label: "Walmart", color: "bg-blue-500", icon: "🛒" },
   TRADER_JOES: { label: "Trader Joe's", color: "bg-red-600", icon: "🌻" },
-  RANCH_99: { label: "99 Ranch", color: "bg-green-600", icon: "🥢" },
+  SHUN_FAT: { label: "Shun Fat", color: "bg-green-600", icon: "🥢" },
   CARDENAS: { label: "Cardenas", color: "bg-orange-500", icon: "🌮" },
   SAFEWAY: { label: "Safeway", color: "bg-red-700", icon: "🏬" },
   TARGET: { label: "Target", color: "bg-red-600", icon: "🎯" },

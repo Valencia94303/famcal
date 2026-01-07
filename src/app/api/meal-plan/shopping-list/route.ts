@@ -7,7 +7,7 @@ const STORES = {
   WINCO: "WINCO",
   WALMART: "WALMART",
   TRADER_JOES: "TRADER_JOES",
-  RANCH_99: "RANCH_99",
+  SHUN_FAT: "SHUN_FAT", // Asian market
   CARDENAS: "CARDENAS",
   SAFEWAY: "SAFEWAY",
   TARGET: "TARGET",
@@ -22,10 +22,10 @@ const STORE_MAPPING: { keywords: string[]; store: string; priority: number }[] =
     store: STORES.COSTCO,
     priority: 1
   },
-  // 99 Ranch Market - Asian groceries (Stockton has one)
+  // Shun Fat Asian Market - Asian groceries (Stockton)
   {
     keywords: ["soy sauce", "tamari", "sesame oil", "rice vinegar", "fish sauce", "hoisin", "sriracha", "ginger", "bok choy", "napa cabbage", "rice noodle", "tofu", "miso", "nori", "wasabi", "sake", "mirin"],
-    store: STORES.RANCH_99,
+    store: STORES.SHUN_FAT,
     priority: 1
   },
   // Cardenas Markets - Mexican groceries (multiple in Stockton)
