@@ -51,6 +51,16 @@ const PUBLIC_ROUTES = [
   "/api/meal-plan/today", // Allow viewing today's meals
 ];
 
+// Routes that allow public GET requests (for dashboard widgets) but require PIN for modifications
+const PUBLIC_READ_ROUTES = [
+  "/api/family",
+  "/api/shopping",
+  "/api/tasks",
+  "/api/habits",
+  "/api/schedule",
+  "/api/rewards",
+];
+
 // Static files and Next.js internals
 const STATIC_PATHS = ["/_next", "/favicon.ico", "/avatars", "/uploads"];
 
@@ -64,6 +74,11 @@ export async function middleware(request: NextRequest) {
 
   // Allow public routes
   if (PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"))) {
+    return NextResponse.next();
+  }
+
+  // Allow GET requests on public read routes (dashboard widgets)
+  if (request.method === "GET" && PUBLIC_READ_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"))) {
     return NextResponse.next();
   }
 

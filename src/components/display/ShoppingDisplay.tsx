@@ -5,69 +5,95 @@ import { motion } from "framer-motion";
 import { Theme } from "@/lib/theme";
 import { AutoScroll } from "./AutoScroll";
 
-interface ShoppingItem {
-  id: string;
+interface MealPlanItem {
   name: string;
-  quantity: number;
-  unit: string | null;
+  quantities: { quantity: string; unit: string; recipe: string }[];
   store: string;
-  checked: boolean;
+  category: string;
 }
 
-interface GroupedItems {
-  COSTCO: ShoppingItem[];
-  WALMART: ShoppingItem[];
-  TARGET: ShoppingItem[];
-  OTHER: ShoppingItem[];
+interface StoreGroup {
+  store: string;
+  label: string;
+  color: string;
+  icon: string;
+  items: MealPlanItem[];
 }
 
 interface ShoppingDisplayProps {
   theme: Theme;
 }
 
-const STORES = [
-  { id: "COSTCO", label: "Costco", color: "bg-red-500", icon: "🏪" },
-  { id: "WALMART", label: "Walmart", color: "bg-blue-500", icon: "🛒" },
-  { id: "TARGET", label: "Target", color: "bg-red-600", icon: "🎯" },
-  { id: "OTHER", label: "Other", color: "bg-slate-500", icon: "📦" },
-];
+// Stockton, CA stores
+const STORES: Record<string, { label: string; color: string; icon: string }> = {
+  COSTCO: { label: "Costco", color: "bg-red-500", icon: "🏪" },
+  WINCO: { label: "WinCo", color: "bg-yellow-500", icon: "🛒" },
+  WALMART: { label: "Walmart", color: "bg-blue-500", icon: "🛒" },
+  TRADER_JOES: { label: "Trader Joe's", color: "bg-red-600", icon: "🌻" },
+  RANCH_99: { label: "99 Ranch", color: "bg-green-600", icon: "🥢" },
+  CARDENAS: { label: "Cardenas", color: "bg-orange-500", icon: "🌮" },
+  SAFEWAY: { label: "Safeway", color: "bg-red-700", icon: "🏬" },
+  TARGET: { label: "Target", color: "bg-red-600", icon: "🎯" },
+  OTHER: { label: "Other", color: "bg-slate-500", icon: "📦" },
+};
 
 export function ShoppingDisplay({ theme }: ShoppingDisplayProps) {
-  const [grouped, setGrouped] = useState<GroupedItems>({
-    COSTCO: [],
-    WALMART: [],
-    TARGET: [],
-    OTHER: [],
-  });
+  const [storeGroups, setStoreGroups] = useState<StoreGroup[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchItems();
-    // Refresh every 2 minutes
-    const interval = setInterval(fetchItems, 2 * 60 * 1000);
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchItems, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
   const fetchItems = async () => {
     try {
-      const res = await fetch("/api/shopping?showChecked=false");
+      // Fetch from meal plan shopping list (weeks 2-4, skipping week 1 which is pantry items)
+      const res = await fetch("/api/meal-plan/shopping-list?week=2");
       const data = await res.json();
-      setGrouped(data.grouped || { COSTCO: [], WALMART: [], TARGET: [], OTHER: [] });
+
+      if (data.items && data.items.length > 0) {
+        // Group items by store
+        const byStore: Record<string, MealPlanItem[]> = {};
+
+        data.items.forEach((item: MealPlanItem) => {
+          const store = item.store || "OTHER";
+          if (!byStore[store]) {
+            byStore[store] = [];
+          }
+          byStore[store].push(item);
+        });
+
+        // Convert to array and add store metadata
+        const groups: StoreGroup[] = Object.entries(byStore)
+          .map(([storeId, items]) => ({
+            store: storeId,
+            label: STORES[storeId]?.label || storeId,
+            color: STORES[storeId]?.color || "bg-slate-500",
+            icon: STORES[storeId]?.icon || "📦",
+            items: items.slice(0, 10), // Limit to 10 items per store for display
+          }))
+          .filter((g) => g.items.length > 0)
+          .sort((a, b) => b.items.length - a.items.length) // Sort by item count
+          .slice(0, 4); // Show top 4 stores
+
+        setStoreGroups(groups);
+        setTotalItems(data.totalItems || 0);
+      }
     } catch (error) {
       console.error("Error fetching shopping items:", error);
     }
     setIsLoading(false);
   };
 
-  const getTotalItems = () => {
-    return Object.values(grouped).flat().length;
-  };
-
   if (isLoading) {
     return (
       <div className={`${theme.cardBg} rounded-3xl p-6 shadow-2xl shadow-black/10`}>
         <h2 className={`text-[1.8vw] font-bold ${theme.textPrimary} mb-4`}>
-          Shopping List
+          Meal Shopping
         </h2>
         <div className="flex justify-center py-4">
           <motion.div
@@ -80,23 +106,18 @@ export function ShoppingDisplay({ theme }: ShoppingDisplayProps) {
     );
   }
 
-  if (getTotalItems() === 0) {
+  if (storeGroups.length === 0) {
     return (
       <div className={`${theme.cardBg} rounded-3xl p-6 shadow-2xl shadow-black/10`}>
         <h2 className={`text-[1.8vw] font-bold ${theme.textPrimary} mb-4`}>
-          Shopping List
+          Meal Shopping
         </h2>
         <p className={`text-[1.2vw] ${theme.textMuted} text-center py-4`}>
-          Shopping list is empty!
+          No meal plan items found
         </p>
       </div>
     );
   }
-
-  // Get stores that have items
-  const activeStores = STORES.filter(
-    (store) => grouped[store.id as keyof GroupedItems].length > 0
-  );
 
   return (
     <div className={`${theme.cardBg} rounded-3xl p-6 shadow-2xl shadow-black/10`}>
@@ -105,42 +126,47 @@ export function ShoppingDisplay({ theme }: ShoppingDisplayProps) {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        Shopping List
+        Meal Shopping
         <span className={`ml-3 text-[1.2vw] font-normal ${theme.textMuted}`}>
-          {getTotalItems()} items
+          {totalItems} items
         </span>
       </motion.h2>
 
       <div className="grid grid-cols-2 gap-4">
-        {activeStores.map((store, storeIndex) => {
-          const items = grouped[store.id as keyof GroupedItems];
-          return (
-            <motion.div
-              key={store.id}
-              className={`rounded-2xl p-4 ${
-                theme.name === "night" ? "bg-slate-800/50" : "bg-white/50"
-              }`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: storeIndex * 0.1 }}
-            >
-              {/* Store header */}
-              <div className="flex items-center gap-2 mb-3">
-                <span className={`w-3 h-3 rounded-full ${store.color}`} />
-                <span className={`text-[1.2vw] font-semibold ${theme.textPrimary}`}>
-                  {store.icon} {store.label}
-                </span>
-                <span className={`text-[0.9vw] ${theme.textMuted}`}>
-                  ({items.length})
-                </span>
-              </div>
+        {storeGroups.map((group, storeIndex) => (
+          <motion.div
+            key={group.store}
+            className={`rounded-2xl p-4 ${
+              theme.name === "night" ? "bg-slate-800/50" : "bg-white/50"
+            }`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: storeIndex * 0.1 }}
+          >
+            {/* Store header */}
+            <div className="flex items-center gap-2 mb-3">
+              <span className={`w-3 h-3 rounded-full ${group.color}`} />
+              <span className={`text-[1.2vw] font-semibold ${theme.textPrimary}`}>
+                {group.icon} {group.label}
+              </span>
+              <span className={`text-[0.9vw] ${theme.textMuted}`}>
+                ({group.items.length})
+              </span>
+            </div>
 
-              {/* Items */}
-              <AutoScroll maxHeight="20vh" duration={15}>
-                <div className="space-y-2">
-                  {items.map((item, itemIndex) => (
+            {/* Items */}
+            <AutoScroll maxHeight="20vh" duration={15}>
+              <div className="space-y-2">
+                {group.items.map((item, itemIndex) => {
+                  // Combine quantities
+                  const totalQty = item.quantities
+                    .map((q) => q.quantity)
+                    .join(" + ");
+                  const unit = item.quantities[0]?.unit || "";
+
+                  return (
                     <motion.div
-                      key={item.id}
+                      key={`${item.name}-${itemIndex}`}
                       className="flex items-center gap-2"
                       initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -151,16 +177,15 @@ export function ShoppingDisplay({ theme }: ShoppingDisplayProps) {
                         {item.name}
                       </span>
                       <span className={`text-[0.9vw] ${theme.textMuted}`}>
-                        x{item.quantity}
-                        {item.unit && ` ${item.unit}`}
+                        {totalQty} {unit}
                       </span>
                     </motion.div>
-                  ))}
-                </div>
-              </AutoScroll>
-            </motion.div>
-          );
-        })}
+                  );
+                })}
+              </div>
+            </AutoScroll>
+          </motion.div>
+        ))}
       </div>
     </div>
   );
