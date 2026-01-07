@@ -53,7 +53,7 @@ export function HabitsDisplay({ theme }: HabitsDisplayProps) {
       setHabits(habitsData.habits || []);
       setChildren(
         (familyData.members || []).filter(
-          (m: { role: string }) => m.role === "CHILD"
+          (m: { role: string }) => m.role.toUpperCase() === "CHILD"
         )
       );
     } catch (error) {

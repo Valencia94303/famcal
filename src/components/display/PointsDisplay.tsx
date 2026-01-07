@@ -36,7 +36,7 @@ export function PointsDisplay({ theme }: PointsDisplayProps) {
 
       // Filter to children only
       const children = members.filter(
-        (m: { role: string }) => m.role === "CHILD"
+        (m: { role: string }) => m.role.toUpperCase() === "CHILD"
       );
 
       if (children.length === 0) {
