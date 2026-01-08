@@ -395,35 +395,46 @@ export function MealsSection() {
                   </Link>
                 </div>
 
-                {/* Action buttons - 2x2 grid on mobile, row on larger */}
-                <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-4 gap-2">
-                  <button
-                    onClick={() => {
-                      setRatingRecipe(recipe);
-                      setShowRatingModal(true);
-                    }}
-                    className="py-2 text-xs font-medium bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition"
-                  >
-                    Rate
-                  </button>
+                {/* Action buttons */}
+                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-3">
+                  {/* Inline star rating */}
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => handleRateRecipe(recipe.id, star, "", true)}
+                        className="p-0.5 transition hover:scale-110"
+                        title={`Rate ${star} star${star > 1 ? "s" : ""}`}
+                      >
+                        <Star
+                          size={18}
+                          className={
+                            star <= (recipe.avgRating || 0)
+                              ? "text-amber-400 fill-amber-400"
+                              : "text-slate-200 hover:text-amber-300"
+                          }
+                        />
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex-1" />
+
                   <button
                     onClick={() => {
                       setEditingRecipe(recipe);
                       setShowRecipeModal(true);
                     }}
-                    className="py-2 text-xs font-medium bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition"
+                    className="px-3 py-1.5 text-xs font-medium bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDeleteRecipe(recipe.id)}
-                    className="py-2 text-xs font-medium bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition"
+                    className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition"
                   >
                     Delete
                   </button>
-                  <div className="py-2 text-xs font-medium text-slate-400 text-center">
-                    {recipe.usedInMealPlans > 0 ? `${recipe.usedInMealPlans}× planned` : "—"}
-                  </div>
                 </div>
               </div>
             ))}
@@ -543,17 +554,23 @@ export function MealsSection() {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-slate-800 truncate">{recipe.name}</h3>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <div className="flex">
+                        <div className="flex gap-0.5">
                           {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
+                            <button
                               key={star}
-                              size={14}
-                              className={
-                                star <= (recipe.avgRating || 0)
-                                  ? "text-amber-400 fill-amber-400"
-                                  : "text-slate-200"
-                              }
-                            />
+                              onClick={() => handleRateRecipe(recipe.id, star, "", true)}
+                              className="p-0.5 transition hover:scale-110"
+                              title={`Rate ${star} star${star > 1 ? "s" : ""}`}
+                            >
+                              <Star
+                                size={16}
+                                className={
+                                  star <= (recipe.avgRating || 0)
+                                    ? "text-amber-400 fill-amber-400"
+                                    : "text-slate-200 hover:text-amber-300"
+                                }
+                              />
+                            </button>
                           ))}
                         </div>
                         <span className="text-xs text-slate-500">
@@ -561,15 +578,6 @@ export function MealsSection() {
                         </span>
                       </div>
                     </div>
-                    <button
-                      onClick={() => {
-                        setRatingRecipe(recipe);
-                        setShowRatingModal(true);
-                      }}
-                      className="shrink-0 px-3 py-1.5 text-sm bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition"
-                    >
-                      Rate
-                    </button>
                   </div>
 
                   {/* Tags */}
