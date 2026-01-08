@@ -4,14 +4,18 @@
   --font-sans: var(--font-inter);
 }
 
-/* Reset and base styles for TV display */
+/* Reset and base styles */
 html,
 body {
   margin: 0;
   padding: 0;
-  overflow: hidden;
   height: 100%;
   width: 100%;
+}
+
+/* TV display mode - no scrolling */
+.tv-display {
+  overflow: hidden;
 }
 
 /* Smooth scrolling for any scrollable areas */

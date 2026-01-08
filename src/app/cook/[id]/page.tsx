@@ -222,7 +222,7 @@ export default function CookingPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-orange-50 to-amber-100 overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-orange-50 to-amber-100">
       {/* Header */}
       <div className="shrink-0 bg-white/90 backdrop-blur-lg shadow-sm z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -271,9 +271,8 @@ export default function CookingPage() {
         </div>
       </div>
 
-      {/* Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4 py-6 pb-12">
+      {/* Content */}
+      <div className="max-w-4xl mx-auto px-4 py-6 pb-12">
         {/* Quick Info Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="bg-white rounded-2xl p-4 shadow-sm">
@@ -475,7 +474,6 @@ export default function CookingPage() {
             </button>
           </motion.div>
         )}
-        </div>
       </div>
 
       {/* Rating Modal */}
