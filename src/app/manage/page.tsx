@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MobileNav, TabType, PointsSection, RewardsSection, SettingsSection, TasksSection, ShoppingSection, HabitsSection, ScheduleSection, AuditLogSection } from "@/components/manage";
+import { PointsSection, RewardsSection, SettingsSection, TasksSection, ShoppingSection, HabitsSection, ScheduleSection, AuditLogSection } from "@/components/manage";
+import { ManageHome, SectionType } from "@/components/manage/ManageHome";
 import { AvatarPicker } from "@/components/manage/AvatarPicker";
 import { MealsSection } from "@/components/manage/MealsSection";
 import { PinGate } from "@/components/auth/PinGate";
 import { QRCodeSVG } from "qrcode.react";
-import { QrCode, X, CreditCard, Smartphone } from "lucide-react";
+import { QrCode, X, CreditCard, Smartphone, ArrowLeft, Home } from "lucide-react";
 
 interface FamilyMember {
   id: string;
@@ -50,11 +51,25 @@ const DAYS = [
 ];
 
 export default function ManagePage() {
-  const [tab, setTab] = useState<TabType>("family");
+  const [activeSection, setActiveSection] = useState<SectionType | "home">("home");
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [chores, setChores] = useState<Chore[]>([]);
   const [loading, setLoading] = useState(true);
   const [pendingRedemptions, setPendingRedemptions] = useState(0);
+
+  // Summary data for home cards
+  const [summaryData, setSummaryData] = useState({
+    familyCount: 0,
+    choreCount: 0,
+    choresToday: 0,
+    taskCount: 0,
+    habitCount: 0,
+    shoppingCount: 0,
+    mealPlanWeek: 1,
+    rewardCount: 0,
+    pendingRedemptions: 0,
+    auditCount: 0,
+  });
 
   // Family form state
   const [showMemberForm, setShowMemberForm] = useState(false);
@@ -84,17 +99,49 @@ export default function ManagePage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [membersRes, choresRes, redemptionsRes] = await Promise.all([
+      const [membersRes, choresRes, redemptionsRes, tasksRes, habitsRes, shoppingRes, rewardsRes] = await Promise.all([
         fetch("/api/family"),
         fetch("/api/chores?all=true"),
         fetch("/api/rewards/redemptions?status=PENDING"),
+        fetch("/api/tasks"),
+        fetch("/api/habits"),
+        fetch("/api/shopping"),
+        fetch("/api/rewards"),
       ]);
       const membersData = await membersRes.json();
       const choresData = await choresRes.json();
       const redemptionsData = await redemptionsRes.json();
+      const tasksData = await tasksRes.json();
+      const habitsData = await habitsRes.json();
+      const shoppingData = await shoppingRes.json();
+      const rewardsData = await rewardsRes.json();
+
       setMembers(membersData.members || []);
       setChores(choresData.chores || []);
       setPendingRedemptions(redemptionsData.pendingCount || 0);
+
+      // Calculate summary data
+      const allChores = choresData.chores || [];
+      const todayChores = allChores.filter((c: Chore) => !c.isCompleted);
+      const pendingTasks = (tasksData.tasks || []).filter((t: { isCompleted: boolean }) => !t.isCompleted);
+      const shoppingItems = (shoppingData.items || []).filter((i: { isPurchased: boolean }) => !i.isPurchased);
+
+      // Get current meal plan week (1-4 based on week of month)
+      const weekOfMonth = Math.ceil(new Date().getDate() / 7);
+      const mealPlanWeek = ((weekOfMonth - 1) % 4) + 1;
+
+      setSummaryData({
+        familyCount: membersData.members?.length || 0,
+        choreCount: allChores.length,
+        choresToday: todayChores.length,
+        taskCount: pendingTasks.length,
+        habitCount: habitsData.habits?.length || 0,
+        shoppingCount: shoppingItems.length,
+        mealPlanWeek,
+        rewardCount: rewardsData.rewards?.length || 0,
+        pendingRedemptions: redemptionsData.pendingCount || 0,
+        auditCount: 0,
+      });
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -311,18 +358,48 @@ export default function ManagePage() {
     );
   };
 
+  const getSectionTitle = (section: SectionType): string => {
+    const titles: Record<SectionType, string> = {
+      family: "Family Members",
+      chores: "Chores",
+      tasks: "Tasks",
+      habits: "Habits",
+      shopping: "Shopping List",
+      meals: "Meal Planning",
+      schedule: "Schedule",
+      rewards: "Rewards",
+      points: "Points",
+      audit: "Audit Log",
+      settings: "Settings",
+    };
+    return titles[section] || section;
+  };
+
   return (
     <PinGate>
-    <div className="fixed inset-0 bg-gradient-to-br from-slate-100 to-slate-200 overflow-y-auto pb-32">
+    <div className="fixed inset-0 bg-gradient-to-br from-slate-100 to-slate-200 overflow-y-auto">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-slate-200 px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-800">FamCal Admin</h1>
+          <div className="flex items-center gap-3">
+            {activeSection !== "home" && (
+              <button
+                onClick={() => setActiveSection("home")}
+                className="p-2 -ml-2 hover:bg-slate-100 rounded-xl transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5 text-slate-600" />
+              </button>
+            )}
+            <h1 className="text-xl font-bold text-slate-800">
+              {activeSection === "home" ? "FamCal Admin" : getSectionTitle(activeSection)}
+            </h1>
+          </div>
           <a
             href="/"
-            className="px-3 py-2 text-slate-600 hover:text-slate-800 font-medium text-sm min-h-[40px] flex items-center"
+            className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors flex items-center gap-2"
           >
-            ← Dashboard
+            <Home className="w-5 h-5" />
+            <span className="hidden sm:inline text-sm font-medium">Dashboard</span>
           </a>
         </div>
       </div>
@@ -335,8 +412,23 @@ export default function ManagePage() {
           </div>
         ) : (
           <AnimatePresence mode="wait">
+            {/* Home View */}
+            {activeSection === "home" && (
+              <motion.div
+                key="home"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <ManageHome
+                  onSelectSection={(section) => setActiveSection(section)}
+                  summaryData={summaryData}
+                />
+              </motion.div>
+            )}
+
             {/* Family Tab */}
-            {tab === "family" && (
+            {activeSection === "family" && (
               <motion.div
                 key="family"
                 initial={{ opacity: 0, x: -20 }}
@@ -561,7 +653,7 @@ export default function ManagePage() {
             )}
 
             {/* Chores Tab */}
-            {tab === "chores" && (
+            {activeSection === "chores" && (
               <motion.div
                 key="chores"
                 initial={{ opacity: 0, x: -20 }}
@@ -821,7 +913,7 @@ export default function ManagePage() {
             )}
 
             {/* Tasks Tab */}
-            {tab === "tasks" && (
+            {activeSection === "tasks" && (
               <motion.div
                 key="tasks"
                 initial={{ opacity: 0, x: -20 }}
@@ -833,7 +925,7 @@ export default function ManagePage() {
             )}
 
             {/* Habits Tab */}
-            {tab === "habits" && (
+            {activeSection === "habits" && (
               <motion.div
                 key="habits"
                 initial={{ opacity: 0, x: -20 }}
@@ -845,7 +937,7 @@ export default function ManagePage() {
             )}
 
             {/* Shopping Tab */}
-            {tab === "shopping" && (
+            {activeSection === "shopping" && (
               <motion.div
                 key="shopping"
                 initial={{ opacity: 0, x: -20 }}
@@ -857,7 +949,7 @@ export default function ManagePage() {
             )}
 
             {/* Meals Tab */}
-            {tab === "meals" && (
+            {activeSection === "meals" && (
               <motion.div
                 key="meals"
                 initial={{ opacity: 0, x: -20 }}
@@ -869,7 +961,7 @@ export default function ManagePage() {
             )}
 
             {/* Schedule Tab */}
-            {tab === "schedule" && (
+            {activeSection === "schedule" && (
               <motion.div
                 key="schedule"
                 initial={{ opacity: 0, x: -20 }}
@@ -881,7 +973,7 @@ export default function ManagePage() {
             )}
 
             {/* Rewards Tab */}
-            {tab === "rewards" && (
+            {activeSection === "rewards" && (
               <motion.div
                 key="rewards"
                 initial={{ opacity: 0, x: -20 }}
@@ -893,7 +985,7 @@ export default function ManagePage() {
             )}
 
             {/* Points Tab */}
-            {tab === "points" && (
+            {activeSection === "points" && (
               <motion.div
                 key="points"
                 initial={{ opacity: 0, x: -20 }}
@@ -905,7 +997,7 @@ export default function ManagePage() {
             )}
 
             {/* Audit Tab */}
-            {tab === "audit" && (
+            {activeSection === "audit" && (
               <motion.div
                 key="audit"
                 initial={{ opacity: 0, x: -20 }}
@@ -917,7 +1009,7 @@ export default function ManagePage() {
             )}
 
             {/* Settings Tab */}
-            {tab === "settings" && (
+            {activeSection === "settings" && (
               <motion.div
                 key="settings"
                 initial={{ opacity: 0, x: -20 }}
@@ -930,13 +1022,6 @@ export default function ManagePage() {
           </AnimatePresence>
         )}
       </div>
-
-      {/* Bottom Navigation */}
-      <MobileNav
-        activeTab={tab}
-        onTabChange={setTab}
-        pendingRedemptions={pendingRedemptions}
-      />
 
       {/* Avatar Picker Modal */}
       {showAvatarPicker && (
