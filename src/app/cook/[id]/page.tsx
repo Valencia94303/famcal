@@ -14,6 +14,7 @@ import {
   Timer,
   Star,
   AlertCircle,
+  X,
 } from "lucide-react";
 
 interface Ingredient {
@@ -66,6 +67,11 @@ export default function CookingPage() {
   const [checkedIngredients, setCheckedIngredients] = useState<Set<number>>(new Set());
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [activeStep, setActiveStep] = useState<number>(0);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [ratingNotes, setRatingNotes] = useState("");
+  const [wouldMakeAgain, setWouldMakeAgain] = useState(true);
+  const [submittingRating, setSubmittingRating] = useState(false);
 
   useEffect(() => {
     loadRecipe();
@@ -111,6 +117,31 @@ export default function CookingPage() {
       }
       return next;
     });
+  };
+
+  const submitRating = async () => {
+    if (ratingValue === 0) return;
+    setSubmittingRating(true);
+    try {
+      const res = await fetch(`/api/recipes/${recipeId}/rate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rating: ratingValue,
+          notes: ratingNotes,
+          wouldMakeAgain,
+        }),
+      });
+      if (res.ok) {
+        setShowRatingModal(false);
+        // Reload recipe to get updated rating
+        loadRecipe();
+      }
+    } catch (err) {
+      console.error("Error submitting rating:", err);
+    } finally {
+      setSubmittingRating(false);
+    }
   };
 
   if (loading) {
@@ -191,9 +222,9 @@ export default function CookingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-100">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-orange-50 to-amber-100 overflow-hidden">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-lg shadow-sm">
+      <div className="shrink-0 bg-white/90 backdrop-blur-lg shadow-sm z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <button
@@ -211,12 +242,15 @@ export default function CookingPage() {
                 <p className="text-sm text-slate-500">{recipe.cuisine} Cuisine</p>
               )}
             </div>
-            {recipe.avgRating && (
-              <div className="flex items-center gap-1 bg-amber-100 px-3 py-1 rounded-full">
-                <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                <span className="font-semibold text-amber-700">{recipe.avgRating}</span>
-              </div>
-            )}
+            <button
+              onClick={() => setShowRatingModal(true)}
+              className="flex items-center gap-1 bg-amber-100 px-3 py-1.5 rounded-full hover:bg-amber-200 transition-colors"
+            >
+              <Star className={`w-4 h-4 ${recipe.avgRating ? "text-amber-500 fill-amber-500" : "text-amber-400"}`} />
+              <span className="font-semibold text-amber-700">
+                {recipe.avgRating ? recipe.avgRating.toFixed(1) : "Rate"}
+              </span>
+            </button>
           </div>
 
           {/* Progress bar */}
@@ -238,7 +272,8 @@ export default function CookingPage() {
       </div>
 
       {/* Content - Scrollable */}
-      <div className="max-w-4xl mx-auto px-4 py-6 pb-32 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 py-6 pb-12">
         {/* Quick Info Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="bg-white rounded-2xl p-4 shadow-sm">
@@ -432,9 +467,93 @@ export default function CookingPage() {
             <div className="text-4xl mb-2">🎉</div>
             <h3 className="text-xl font-bold mb-1">All Done!</h3>
             <p className="text-green-100">Great job cooking {recipe.name}!</p>
+            <button
+              onClick={() => setShowRatingModal(true)}
+              className="mt-4 px-6 py-2 bg-white/20 hover:bg-white/30 rounded-xl font-medium transition-colors"
+            >
+              Rate this recipe
+            </button>
           </motion.div>
         )}
+        </div>
       </div>
+
+      {/* Rating Modal */}
+      {showRatingModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-slate-800">Rate Recipe</h2>
+              <button
+                onClick={() => setShowRatingModal(false)}
+                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+
+            {/* Stars */}
+            <div className="flex justify-center gap-2 mb-4">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setRatingValue(star)}
+                  className="p-1 transition-transform hover:scale-110"
+                >
+                  <Star
+                    className={`w-10 h-10 ${
+                      star <= ratingValue
+                        ? "text-amber-400 fill-amber-400"
+                        : "text-slate-200"
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+            <p className="text-center text-sm text-slate-500 mb-4">
+              {ratingValue === 1 && "Remove from rotation"}
+              {ratingValue === 2 && "Needs adjustment"}
+              {ratingValue === 3 && "It's okay"}
+              {ratingValue === 4 && "Really good!"}
+              {ratingValue === 5 && "Family favorite!"}
+              {ratingValue === 0 && "Tap a star to rate"}
+            </p>
+
+            {/* Would make again */}
+            <label className="flex items-center gap-3 mb-4 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={wouldMakeAgain}
+                onChange={(e) => setWouldMakeAgain(e.target.checked)}
+                className="w-5 h-5 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+              />
+              <span className="text-slate-700">Would make again</span>
+            </label>
+
+            {/* Notes */}
+            <textarea
+              value={ratingNotes}
+              onChange={(e) => setRatingNotes(e.target.value)}
+              placeholder="Add notes (optional)..."
+              rows={3}
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none mb-4"
+            />
+
+            {/* Submit */}
+            <button
+              onClick={submitRating}
+              disabled={ratingValue === 0 || submittingRating}
+              className="w-full py-3 bg-amber-500 text-white rounded-xl font-semibold hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {submittingRating ? "Submitting..." : "Submit Rating"}
+            </button>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

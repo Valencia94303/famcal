@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { Theme } from "@/lib/theme";
 
 interface Recipe {
@@ -139,49 +140,67 @@ export function MealPlanDisplay({ theme }: MealPlanDisplayProps) {
       </motion.h2>
 
       <div className="space-y-3">
-        {meals.map((meal, index) => (
-          <motion.div
-            key={meal.id}
-            className={`flex items-center gap-4 p-3 rounded-xl ${
-              theme.name === "night" ? "bg-slate-800/50" : "bg-white/50"
-            }`}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <span className="text-[2vw]">
-              {meal.recipe?.icon || MEAL_TYPE_ICONS[meal.mealType] || "🍽️"}
-            </span>
-            <div className="flex-1">
-              <p className={`text-[0.9vw] font-medium ${theme.textMuted}`}>
-                {MEAL_TYPE_LABELS[meal.mealType] || meal.mealType}
-              </p>
-              <p className={`text-[1.2vw] font-semibold ${theme.textPrimary}`}>
-                {meal.recipe?.name || meal.customMeal || "No meal set"}
-              </p>
-              {meal.recipe && (
-                <div className="flex items-center gap-3 mt-0.5">
-                  {meal.recipe.avgRating && (
-                    <StarRating rating={meal.recipe.avgRating} />
-                  )}
-                  {(meal.recipe.prepTime || meal.recipe.cookTime) && (
-                    <span className={`text-[0.8vw] ${theme.textMuted}`}>
-                      ⏱️{" "}
-                      {(meal.recipe.prepTime || 0) +
-                        (meal.recipe.cookTime || 0)}{" "}
-                      min
-                    </span>
-                  )}
-                </div>
-              )}
-              {meal.notes && (
-                <p className={`text-[0.8vw] ${theme.textMuted}`}>
-                  {meal.notes}
+        {meals.map((meal, index) => {
+          const content = (
+            <>
+              <span className="text-[2vw]">
+                {meal.recipe?.icon || MEAL_TYPE_ICONS[meal.mealType] || "🍽️"}
+              </span>
+              <div className="flex-1">
+                <p className={`text-[0.9vw] font-medium ${theme.textMuted}`}>
+                  {MEAL_TYPE_LABELS[meal.mealType] || meal.mealType}
                 </p>
+                <p className={`text-[1.2vw] font-semibold ${theme.textPrimary}`}>
+                  {meal.recipe?.name || meal.customMeal || "No meal set"}
+                </p>
+                {meal.recipe && (
+                  <div className="flex items-center gap-3 mt-0.5">
+                    {meal.recipe.avgRating && (
+                      <StarRating rating={meal.recipe.avgRating} />
+                    )}
+                    {(meal.recipe.prepTime || meal.recipe.cookTime) && (
+                      <span className={`text-[0.8vw] ${theme.textMuted}`}>
+                        ⏱️{" "}
+                        {(meal.recipe.prepTime || 0) +
+                          (meal.recipe.cookTime || 0)}{" "}
+                        min
+                      </span>
+                    )}
+                  </div>
+                )}
+                {meal.notes && (
+                  <p className={`text-[0.8vw] ${theme.textMuted}`}>
+                    {meal.notes}
+                  </p>
+                )}
+              </div>
+            </>
+          );
+
+          const baseClasses = `flex items-center gap-4 p-3 rounded-xl ${
+            theme.name === "night" ? "bg-slate-800/50" : "bg-white/50"
+          }`;
+
+          return (
+            <motion.div
+              key={meal.id}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              {meal.recipe ? (
+                <Link
+                  href={`/cook/${meal.recipe.id}`}
+                  className={`${baseClasses} hover:ring-2 hover:ring-amber-300 transition-all`}
+                >
+                  {content}
+                </Link>
+              ) : (
+                <div className={baseClasses}>{content}</div>
               )}
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
