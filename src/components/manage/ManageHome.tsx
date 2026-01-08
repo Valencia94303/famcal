@@ -13,6 +13,7 @@ import {
   Star,
   Shield,
   Settings,
+  LucideIcon,
 } from "lucide-react";
 
 export type SectionType =
@@ -31,7 +32,7 @@ export type SectionType =
 interface SectionCard {
   id: SectionType;
   label: string;
-  icon: React.ReactNode;
+  Icon: LucideIcon;
   color: string;
   bgColor: string;
 }
@@ -56,77 +57,77 @@ const sections: SectionCard[] = [
   {
     id: "family",
     label: "Family",
-    icon: <Users className="w-7 h-7" />,
+    Icon: Users,
     color: "text-blue-600",
     bgColor: "bg-blue-50",
   },
   {
     id: "chores",
     label: "Chores",
-    icon: <ClipboardCheck className="w-7 h-7" />,
+    Icon: ClipboardCheck,
     color: "text-green-600",
     bgColor: "bg-green-50",
   },
   {
     id: "tasks",
     label: "Tasks",
-    icon: <CheckCircle2 className="w-7 h-7" />,
+    Icon: CheckCircle2,
     color: "text-purple-600",
     bgColor: "bg-purple-50",
   },
   {
     id: "habits",
     label: "Habits",
-    icon: <Target className="w-7 h-7" />,
+    Icon: Target,
     color: "text-orange-600",
     bgColor: "bg-orange-50",
   },
   {
     id: "shopping",
     label: "Shopping",
-    icon: <ShoppingCart className="w-7 h-7" />,
+    Icon: ShoppingCart,
     color: "text-pink-600",
     bgColor: "bg-pink-50",
   },
   {
     id: "meals",
     label: "Meals",
-    icon: <UtensilsCrossed className="w-7 h-7" />,
+    Icon: UtensilsCrossed,
     color: "text-amber-600",
     bgColor: "bg-amber-50",
   },
   {
     id: "schedule",
     label: "Schedule",
-    icon: <Calendar className="w-7 h-7" />,
+    Icon: Calendar,
     color: "text-cyan-600",
     bgColor: "bg-cyan-50",
   },
   {
     id: "rewards",
     label: "Rewards",
-    icon: <Gift className="w-7 h-7" />,
+    Icon: Gift,
     color: "text-red-600",
     bgColor: "bg-red-50",
   },
   {
     id: "points",
     label: "Points",
-    icon: <Star className="w-7 h-7" />,
+    Icon: Star,
     color: "text-yellow-600",
     bgColor: "bg-yellow-50",
   },
   {
     id: "audit",
     label: "Audit Log",
-    icon: <Shield className="w-7 h-7" />,
+    Icon: Shield,
     color: "text-slate-600",
     bgColor: "bg-slate-100",
   },
   {
     id: "settings",
     label: "Settings",
-    icon: <Settings className="w-7 h-7" />,
+    Icon: Settings,
     color: "text-indigo-600",
     bgColor: "bg-indigo-50",
   },
@@ -196,7 +197,9 @@ export function ManageHome({ onSelectSection, summaryData }: ManageHomeProps) {
             )}
 
             {/* Icon */}
-            <div className={`${section.color} mb-3`}>{section.icon}</div>
+            <div className={`${section.color} mb-3`}>
+              <section.Icon className="w-7 h-7" />
+            </div>
 
             {/* Label */}
             <h3 className="font-semibold text-slate-800 text-lg">
