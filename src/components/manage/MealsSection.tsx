@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Search, Star, Calendar, Utensils, Filter, ShoppingCart, Check, Store, ChefHat } from "lucide-react";
+import { Plus, Search, Star, Calendar, Utensils, ShoppingCart, ChefHat, X, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 
 interface Recipe {
@@ -294,66 +294,41 @@ export function MealsSection() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Tab Navigation */}
-      <div className="flex gap-2 border-b border-gray-200 pb-2">
-        <button
-          onClick={() => setActiveTab("recipes")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium transition ${
-            activeTab === "recipes"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          <Utensils size={18} />
-          Recipes
-        </button>
-        <button
-          onClick={() => setActiveTab("mealplan")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium transition ${
-            activeTab === "mealplan"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          <Calendar size={18} />
-          Meal Plan
-        </button>
-        <button
-          onClick={() => setActiveTab("ratings")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium transition ${
-            activeTab === "ratings"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          <Star size={18} />
-          Ratings
-        </button>
-        <button
-          onClick={() => {
-            setActiveTab("shopping");
-            if (!shoppingList) fetchShoppingList(shoppingWeeks);
-          }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium transition ${
-            activeTab === "shopping"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          <ShoppingCart size={18} />
-          Shopping List
-        </button>
+    <div className="space-y-4">
+      {/* Tab Navigation - Horizontal scrollable pills */}
+      <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+        {[
+          { id: "recipes" as Tab, label: "Recipes", icon: Utensils },
+          { id: "mealplan" as Tab, label: "Plan", icon: Calendar },
+          { id: "ratings" as Tab, label: "Ratings", icon: Star },
+          { id: "shopping" as Tab, label: "Shopping", icon: ShoppingCart },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => {
+              setActiveTab(tab.id);
+              if (tab.id === "shopping" && !shoppingList) fetchShoppingList(shoppingWeeks);
+            }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-medium text-sm whitespace-nowrap transition-all ${
+              activeTab === tab.id
+                ? "bg-amber-500 text-white shadow-md"
+                : "bg-white text-slate-600 border border-slate-200 hover:border-amber-300"
+            }`}
+          >
+            <tab.icon size={16} />
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Recipes Tab */}
       {activeTab === "recipes" && (
         <div className="space-y-4">
           {/* Search and Add */}
-          <div className="flex gap-4">
+          <div className="flex gap-2">
             <div className="flex-1 relative">
               <Search
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"
                 size={18}
               />
               <input
@@ -361,7 +336,7 @@ export function MealsSection() {
                 placeholder="Search recipes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-300"
               />
             </div>
             <button
@@ -369,82 +344,65 @@ export function MealsSection() {
                 setEditingRecipe(null);
                 setShowRecipeModal(true);
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+              className="flex items-center gap-1 px-4 py-2.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition font-medium"
             >
               <Plus size={18} />
-              Add Recipe
+              <span className="hidden sm:inline">Add</span>
             </button>
           </div>
 
-          {/* Recipe Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Recipe List - Compact cards */}
+          <div className="space-y-3">
             {filteredRecipes.map((recipe) => (
               <div
                 key={recipe.id}
-                className="bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition"
+                className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">{recipe.icon || "🍽️"}</span>
-                    <div>
-                      <h3 className="font-semibold text-gray-800">{recipe.name}</h3>
+                <div className="flex items-center gap-3">
+                  {/* Icon */}
+                  <span className="text-3xl shrink-0">{recipe.icon || "🍽️"}</span>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-slate-800 truncate">{recipe.name}</h3>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
                       {recipe.cuisine && (
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                        <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
                           {recipe.cuisine}
                         </span>
                       )}
+                      {(recipe.prepTime || recipe.cookTime) && (
+                        <span className="text-xs text-slate-500">
+                          ⏱️ {(recipe.prepTime || 0) + (recipe.cookTime || 0)}m
+                        </span>
+                      )}
+                      {recipe.avgRating ? (
+                        <span className="text-xs text-amber-600 flex items-center gap-0.5">
+                          <Star size={12} className="fill-amber-400 text-amber-400" />
+                          {recipe.avgRating.toFixed(1)}
+                        </span>
+                      ) : null}
                     </div>
                   </div>
-                </div>
 
-                {/* Rating */}
-                <div className="mt-3 flex items-center gap-2">
-                  {recipe.avgRating ? (
-                    <>
-                      <div className="flex">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            size={16}
-                            className={
-                              star <= recipe.avgRating!
-                                ? "text-yellow-400 fill-yellow-400"
-                                : "text-gray-300"
-                            }
-                          />
-                        ))}
-                      </div>
-                      <span className="text-sm text-gray-500">
-                        ({recipe.ratingCount})
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-sm text-gray-400">No ratings yet</span>
-                  )}
-                </div>
-
-                {/* Time */}
-                {(recipe.prepTime || recipe.cookTime) && (
-                  <p className="text-sm text-gray-500 mt-2">
-                    ⏱️ {(recipe.prepTime || 0) + (recipe.cookTime || 0)} min
-                  </p>
-                )}
-
-                {/* Actions */}
-                <div className="mt-4 flex gap-2">
+                  {/* Primary Action */}
                   <Link
                     href={`/cook/${recipe.id}`}
-                    className="flex items-center justify-center gap-1 flex-1 px-3 py-1.5 text-sm bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition"
+                    className="shrink-0 p-2.5 bg-orange-100 text-orange-600 rounded-xl hover:bg-orange-200 transition"
+                    title="Cook"
                   >
-                    <ChefHat size={14} />
-                    Cook
+                    <ChefHat size={20} />
                   </Link>
+                </div>
+
+                {/* Action buttons - 2x2 grid on mobile, row on larger */}
+                <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-4 gap-2">
                   <button
                     onClick={() => {
                       setRatingRecipe(recipe);
                       setShowRatingModal(true);
                     }}
-                    className="flex-1 px-3 py-1.5 text-sm bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition"
+                    className="py-2 text-xs font-medium bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition"
                   >
                     Rate
                   </button>
@@ -453,23 +411,26 @@ export function MealsSection() {
                       setEditingRecipe(recipe);
                       setShowRecipeModal(true);
                     }}
-                    className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+                    className="py-2 text-xs font-medium bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDeleteRecipe(recipe.id)}
-                    className="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
+                    className="py-2 text-xs font-medium bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition"
                   >
                     Delete
                   </button>
+                  <div className="py-2 text-xs font-medium text-slate-400 text-center">
+                    {recipe.usedInMealPlans > 0 ? `${recipe.usedInMealPlans}× planned` : "—"}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
 
           {filteredRecipes.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-slate-500">
               <Utensils size={48} className="mx-auto mb-4 opacity-50" />
               <p>No recipes found</p>
               <p className="text-sm">Add your first recipe to get started!</p>
@@ -481,49 +442,40 @@ export function MealsSection() {
       {/* Meal Plan Tab */}
       {activeTab === "mealplan" && (
         <div className="space-y-4">
-          {/* Week Selector */}
-          <div className="flex items-center gap-4">
-            <span className="font-medium text-gray-700">Week:</span>
-            <div className="flex gap-2">
-              {[1, 2, 3, 4].map((week) => (
-                <button
-                  key={week}
-                  onClick={() => setSelectedWeek(week)}
-                  className={`px-4 py-2 rounded-lg font-medium transition ${
-                    selectedWeek === week
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-                >
-                  {week}
-                </button>
-              ))}
-            </div>
+          {/* Week Selector - Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            <span className="text-sm font-medium text-slate-500 shrink-0">Week:</span>
+            {[1, 2, 3, 4].map((week) => (
+              <button
+                key={week}
+                onClick={() => setSelectedWeek(week)}
+                className={`px-4 py-2 rounded-full font-medium text-sm transition whitespace-nowrap ${
+                  selectedWeek === week
+                    ? "bg-amber-500 text-white"
+                    : "bg-white border border-slate-200 text-slate-600 hover:border-amber-300"
+                }`}
+              >
+                Week {week}
+              </button>
+            ))}
           </div>
 
-          {/* Meal Plan Grid */}
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr>
-                  <th className="p-2 text-left bg-gray-100 rounded-tl-lg">Day</th>
-                  {MEAL_TYPES.map((type) => (
-                    <th key={type} className="p-2 text-left bg-gray-100">
-                      {type.charAt(0) + type.slice(1).toLowerCase()}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {DAYS_OF_WEEK.map((day) => (
-                  <tr key={day} className="border-t">
-                    <td className="p-2 font-medium text-gray-700 bg-gray-50">
-                      {DAY_LABELS[day]}
-                    </td>
-                    {MEAL_TYPES.map((mealType) => {
-                      const meal = mealPlan[selectedWeek]?.[day]?.[mealType];
-                      return (
-                        <td key={mealType} className="p-2">
+          {/* Meal Plan Cards - Mobile friendly */}
+          <div className="space-y-3">
+            {DAYS_OF_WEEK.map((day) => (
+              <div key={day} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
+                  <span className="font-semibold text-slate-700">{DAY_LABELS[day]}</span>
+                </div>
+                <div className="p-3 space-y-2">
+                  {MEAL_TYPES.map((mealType) => {
+                    const meal = mealPlan[selectedWeek]?.[day]?.[mealType];
+                    return (
+                      <div key={mealType} className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-slate-400 w-14 shrink-0">
+                          {mealType === "LUNCH" ? "Lunch" : "Dinner"}
+                        </span>
+                        <div className="flex-1">
                           <MealSlot
                             meal={meal}
                             recipes={recipes}
@@ -531,13 +483,13 @@ export function MealsSection() {
                               handleAssignMeal(selectedWeek, day, mealType, recipeId, customMeal)
                             }
                           />
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -545,42 +497,32 @@ export function MealsSection() {
       {/* Ratings Tab */}
       {activeTab === "ratings" && (
         <div className="space-y-4">
-          {/* Rating Filter */}
-          <div className="flex items-center gap-4">
-            <Filter size={18} className="text-gray-500" />
-            <button
-              onClick={() => setRatingFilter("all")}
-              className={`px-3 py-1 rounded-lg text-sm transition ${
-                ratingFilter === "all"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setRatingFilter("low")}
-              className={`px-3 py-1 rounded-lg text-sm transition ${
-                ratingFilter === "low"
-                  ? "bg-red-500 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              Low Rated (1-2★)
-            </button>
-            <button
-              onClick={() => setRatingFilter("high")}
-              className={`px-3 py-1 rounded-lg text-sm transition ${
-                ratingFilter === "high"
-                  ? "bg-green-500 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              Favorites (4-5★)
-            </button>
+          {/* Rating Filter - Pills */}
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {[
+              { id: "all" as const, label: "All" },
+              { id: "low" as const, label: "Low (1-2★)" },
+              { id: "high" as const, label: "Favorites (4-5★)" },
+            ].map((filter) => (
+              <button
+                key={filter.id}
+                onClick={() => setRatingFilter(filter.id)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition whitespace-nowrap ${
+                  ratingFilter === filter.id
+                    ? filter.id === "low"
+                      ? "bg-red-500 text-white"
+                      : filter.id === "high"
+                        ? "bg-green-500 text-white"
+                        : "bg-amber-500 text-white"
+                    : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
           </div>
 
-          {/* Ratings List */}
+          {/* Ratings List - Mobile friendly */}
           <div className="space-y-3">
             {filteredRecipes
               .filter((r) => r.ratingCount > 0)
@@ -588,19 +530,19 @@ export function MealsSection() {
               .map((recipe) => (
                 <div
                   key={recipe.id}
-                  className={`flex items-center justify-between p-4 rounded-xl border ${
+                  className={`bg-white border rounded-xl p-4 ${
                     recipe.avgRating && recipe.avgRating <= 2
-                      ? "bg-red-50 border-red-200"
+                      ? "border-red-200 bg-red-50/50"
                       : recipe.avgRating && recipe.avgRating >= 4
-                        ? "bg-green-50 border-green-200"
-                        : "bg-white"
+                        ? "border-green-200 bg-green-50/50"
+                        : "border-slate-200"
                   }`}
                 >
-                  <div className="flex items-center gap-4">
-                    <span className="text-2xl">{recipe.icon || "🍽️"}</span>
-                    <div>
-                      <h3 className="font-semibold">{recipe.name}</h3>
-                      <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl shrink-0">{recipe.icon || "🍽️"}</span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-slate-800 truncate">{recipe.name}</h3>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <div className="flex">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <Star
@@ -608,49 +550,55 @@ export function MealsSection() {
                               size={14}
                               className={
                                 star <= (recipe.avgRating || 0)
-                                  ? "text-yellow-400 fill-yellow-400"
-                                  : "text-gray-300"
+                                  ? "text-amber-400 fill-amber-400"
+                                  : "text-slate-200"
                               }
                             />
                           ))}
                         </div>
-                        <span className="text-sm text-gray-500">
-                          {recipe.avgRating?.toFixed(1)} ({recipe.ratingCount} ratings)
+                        <span className="text-xs text-slate-500">
+                          {recipe.avgRating?.toFixed(1)} • {recipe.ratingCount} ratings
                         </span>
-                        {recipe.wouldMakeAgainPercent !== null && (
-                          <span className="text-sm text-gray-500">
-                            • {recipe.wouldMakeAgainPercent}% would make again
-                          </span>
-                        )}
                       </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2">
-                    {recipe.avgRating && recipe.avgRating <= 2 && (
-                      <span className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded">
-                        Consider removing
-                      </span>
-                    )}
-                    {recipe.avgRating && recipe.avgRating >= 4.5 && (
-                      <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
-                        Family favorite
-                      </span>
-                    )}
                     <button
                       onClick={() => {
                         setRatingRecipe(recipe);
                         setShowRatingModal(true);
                       }}
-                      className="px-3 py-1 text-sm bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition"
+                      className="shrink-0 px-3 py-1.5 text-sm bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition"
                     >
-                      Update Rating
+                      Rate
                     </button>
                   </div>
+
+                  {/* Tags */}
+                  {((recipe.avgRating && recipe.avgRating <= 2) ||
+                    (recipe.avgRating && recipe.avgRating >= 4.5) ||
+                    recipe.wouldMakeAgainPercent !== null) && (
+                    <div className="mt-2 pt-2 border-t border-slate-100 flex flex-wrap gap-2">
+                      {recipe.avgRating && recipe.avgRating <= 2 && (
+                        <span className="px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded-full">
+                          Consider removing
+                        </span>
+                      )}
+                      {recipe.avgRating && recipe.avgRating >= 4.5 && (
+                        <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
+                          Family favorite
+                        </span>
+                      )}
+                      {recipe.wouldMakeAgainPercent !== null && (
+                        <span className="px-2 py-0.5 text-xs bg-slate-100 text-slate-600 rounded-full">
+                          {recipe.wouldMakeAgainPercent}% would make again
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
 
             {filteredRecipes.filter((r) => r.ratingCount > 0).length === 0 && (
-              <div className="text-center py-12 text-gray-500">
+              <div className="text-center py-12 text-slate-500">
                 <Star size={48} className="mx-auto mb-4 opacity-50" />
                 <p>No rated recipes yet</p>
                 <p className="text-sm">Rate some recipes to see them here!</p>
@@ -663,189 +611,128 @@ export function MealsSection() {
       {/* Shopping List Tab */}
       {activeTab === "shopping" && (
         <div className="space-y-4">
-          {/* Week Selector */}
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-4">
-              <span className="font-medium text-gray-700">Generate for weeks:</span>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4].map((week) => (
-                  <button
-                    key={week}
-                    onClick={() => {
-                      const newWeeks = shoppingWeeks.includes(week)
-                        ? shoppingWeeks.filter((w) => w !== week)
-                        : [...shoppingWeeks, week].sort();
-                      setShoppingWeeks(newWeeks);
-                    }}
-                    className={`px-3 py-1.5 rounded-lg font-medium transition ${
-                      shoppingWeeks.includes(week)
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
-                  >
-                    Week {week}
-                    {week === 1 && <span className="text-xs ml-1">(fridge)</span>}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={() => fetchShoppingList(shoppingWeeks)}
-                disabled={shoppingLoading || shoppingWeeks.length === 0}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 transition"
-              >
-                {shoppingLoading ? "Loading..." : "Generate List"}
-              </button>
+          {/* Week Selector - Compact */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <span className="text-sm font-medium text-slate-500">Weeks:</span>
+              {[1, 2, 3, 4].map((week) => (
+                <button
+                  key={week}
+                  onClick={() => {
+                    const newWeeks = shoppingWeeks.includes(week)
+                      ? shoppingWeeks.filter((w) => w !== week)
+                      : [...shoppingWeeks, week].sort();
+                    setShoppingWeeks(newWeeks);
+                  }}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${
+                    shoppingWeeks.includes(week)
+                      ? "bg-amber-500 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  {week}
+                </button>
+              ))}
             </div>
-
-            {/* View Mode Toggle */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShoppingViewMode("store")}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition ${
-                  shoppingViewMode === "store"
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                <Store size={16} />
-                By Store
-              </button>
-              <button
-                onClick={() => setShoppingViewMode("category")}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition ${
-                  shoppingViewMode === "category"
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                <Filter size={16} />
-                By Category
-              </button>
-            </div>
+            <button
+              onClick={() => fetchShoppingList(shoppingWeeks)}
+              disabled={shoppingLoading || shoppingWeeks.length === 0}
+              className="w-full py-2.5 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 disabled:opacity-50 transition"
+            >
+              {shoppingLoading ? "Generating..." : "Generate Shopping List"}
+            </button>
           </div>
 
           {/* Shopping List Content */}
           {shoppingLoading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500" />
             </div>
           ) : shoppingList ? (
             <div className="space-y-4">
-              {/* Summary */}
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-blue-800">
-                      Shopping List for Weeks {shoppingList.weeks.join(", ")}
-                    </h3>
-                    <p className="text-sm text-blue-600">
-                      {shoppingList.totalItems} items across {Object.keys(shoppingList.byStore).length} stores
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => addToShoppingList(false)}
-                      disabled={addingToList}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 transition"
-                    >
-                      <Plus size={18} />
-                      {addingToList ? "Adding..." : "Add to List"}
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (confirm("This will clear existing unchecked items. Continue?")) {
-                          addToShoppingList(true);
-                        }
-                      }}
-                      disabled={addingToList}
-                      className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 transition"
-                    >
-                      Replace List
-                    </button>
-                  </div>
+              {/* Summary & Actions */}
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <p className="text-sm text-amber-800 mb-3">
+                  <span className="font-semibold">{shoppingList.totalItems} items</span> for weeks {shoppingList.weeks.join(", ")}
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => addToShoppingList(false)}
+                    disabled={addingToList}
+                    className="py-2.5 bg-green-500 text-white rounded-xl text-sm font-medium hover:bg-green-600 disabled:opacity-50 transition"
+                  >
+                    {addingToList ? "Adding..." : "Add to List"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm("Clear existing items and replace?")) {
+                        addToShoppingList(true);
+                      }
+                    }}
+                    disabled={addingToList}
+                    className="py-2.5 bg-slate-200 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-300 disabled:opacity-50 transition"
+                  >
+                    Replace List
+                  </button>
                 </div>
               </div>
 
-              {/* Items grouped by store or category */}
-              {shoppingViewMode === "store" ? (
-                <div className="space-y-6">
-                  {Object.entries(shoppingList.byStore).map(([store, items]) => (
-                    <div key={store} className="bg-white border rounded-xl overflow-hidden">
-                      <div className="bg-gray-100 px-4 py-3 flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-800">
-                          {STORE_LABELS[store] || store}
-                        </h3>
-                        <span className="text-sm text-gray-500">{items.length} items</span>
-                      </div>
-                      <div className="divide-y">
-                        {items.map((item, idx) => (
-                          <div key={idx} className="px-4 py-3 flex items-start justify-between hover:bg-gray-50">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-800">{item.name}</span>
-                                <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
-                                  {item.category}
-                                </span>
-                              </div>
-                              <p className="text-xs text-gray-500 mt-1">
-                                For: {[...new Set(item.quantities.map((q) => q.recipe))].join(", ")}
-                              </p>
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {item.quantities.map((q, i) => (
-                                <span key={i} className="block text-right">
-                                  {q.quantity} {q.unit}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+              {/* View Toggle */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShoppingViewMode("store")}
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium transition ${
+                    shoppingViewMode === "store"
+                      ? "bg-amber-500 text-white"
+                      : "bg-white border border-slate-200 text-slate-600"
+                  }`}
+                >
+                  By Store
+                </button>
+                <button
+                  onClick={() => setShoppingViewMode("category")}
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium transition ${
+                    shoppingViewMode === "category"
+                      ? "bg-amber-500 text-white"
+                      : "bg-white border border-slate-200 text-slate-600"
+                  }`}
+                >
+                  By Category
+                </button>
+              </div>
+
+              {/* Items List */}
+              <div className="space-y-3">
+                {Object.entries(
+                  shoppingViewMode === "store" ? shoppingList.byStore : shoppingList.byCategory
+                ).map(([group, items]) => (
+                  <div key={group} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                    <div className="bg-slate-50 px-4 py-2.5 flex items-center justify-between border-b border-slate-200">
+                      <span className="font-semibold text-slate-700 text-sm">
+                        {shoppingViewMode === "store" ? (STORE_LABELS[group] || group) : group}
+                      </span>
+                      <span className="text-xs text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full">
+                        {items.length}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {Object.entries(shoppingList.byCategory).map(([category, items]) => (
-                    <div key={category} className="bg-white border rounded-xl overflow-hidden">
-                      <div className="bg-gray-100 px-4 py-3 flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-800">{category}</h3>
-                        <span className="text-sm text-gray-500">{items.length} items</span>
-                      </div>
-                      <div className="divide-y">
-                        {items.map((item, idx) => (
-                          <div key={idx} className="px-4 py-3 flex items-start justify-between hover:bg-gray-50">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-800">{item.name}</span>
-                                <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
-                                  {STORE_LABELS[item.store] || item.store}
-                                </span>
-                              </div>
-                              <p className="text-xs text-gray-500 mt-1">
-                                For: {[...new Set(item.quantities.map((q) => q.recipe))].join(", ")}
-                              </p>
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {item.quantities.map((q, i) => (
-                                <span key={i} className="block text-right">
-                                  {q.quantity} {q.unit}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                    <div className="divide-y divide-slate-100">
+                      {items.map((item, idx) => (
+                        <div key={idx} className="px-4 py-2.5 flex items-center justify-between">
+                          <span className="text-sm text-slate-700">{item.name}</span>
+                          <span className="text-xs text-slate-400">
+                            {item.quantities.map((q) => `${q.quantity} ${q.unit}`).join(", ")}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-slate-400">
               <ShoppingCart size={48} className="mx-auto mb-4 opacity-50" />
-              <p>Select weeks and click Generate List</p>
-              <p className="text-sm">Week 1 items are typically already in your fridge</p>
+              <p>Select weeks and generate a list</p>
             </div>
           )}
         </div>
@@ -900,14 +787,14 @@ function MealSlot({
 
   if (isEditing) {
     return (
-      <div className="space-y-2">
+      <div className="bg-slate-50 rounded-lg p-2 space-y-2">
         <select
           value={selectedRecipeId}
           onChange={(e) => {
             setSelectedRecipeId(e.target.value);
             setCustomMeal("");
           }}
-          className="w-full px-2 py-1 text-sm border rounded"
+          className="w-full px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white"
         >
           <option value="">Select recipe...</option>
           {recipes.map((r) => (
@@ -918,29 +805,29 @@ function MealSlot({
         </select>
         <input
           type="text"
-          placeholder="Or custom meal..."
+          placeholder="Or type custom..."
           value={customMeal}
           onChange={(e) => {
             setCustomMeal(e.target.value);
             setSelectedRecipeId("");
           }}
-          className="w-full px-2 py-1 text-sm border rounded"
+          className="w-full px-2 py-1.5 text-sm border border-slate-200 rounded-lg"
         />
-        <div className="flex gap-1">
+        <div className="flex gap-2">
           <button
             onClick={() => {
               onAssign(selectedRecipeId || null, customMeal || null);
               setIsEditing(false);
             }}
-            className="flex-1 px-2 py-1 text-xs bg-blue-500 text-white rounded"
+            className="flex-1 py-1.5 text-xs bg-amber-500 text-white rounded-lg font-medium"
           >
             Save
           </button>
           <button
             onClick={() => setIsEditing(false)}
-            className="px-2 py-1 text-xs bg-gray-200 rounded"
+            className="py-1.5 px-3 text-xs bg-slate-200 text-slate-600 rounded-lg"
           >
-            Cancel
+            <X size={14} />
           </button>
         </div>
       </div>
@@ -948,33 +835,30 @@ function MealSlot({
   }
 
   return (
-    <div className="flex gap-1">
+    <div className="flex items-center gap-2">
       <button
         onClick={() => setIsEditing(true)}
-        className={`flex-1 text-left p-2 rounded-lg border-2 border-dashed transition ${
+        className={`flex-1 text-left px-3 py-2 rounded-lg text-sm transition ${
           meal
-            ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
-            : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+            ? "bg-amber-50 text-amber-800 hover:bg-amber-100"
+            : "bg-slate-100 text-slate-400 hover:bg-slate-200"
         }`}
       >
         {meal ? (
-          <div className="flex items-center gap-2">
+          <span className="flex items-center gap-2">
             <span>{meal.recipe?.icon || "🍽️"}</span>
-            <span className="text-sm truncate">
-              {meal.recipe?.name || meal.customMeal}
-            </span>
-          </div>
+            <span className="truncate">{meal.recipe?.name || meal.customMeal}</span>
+          </span>
         ) : (
-          <span className="text-sm text-gray-400">+ Add meal</span>
+          "+ Add"
         )}
       </button>
       {meal?.recipe && (
         <Link
           href={`/cook/${meal.recipe.id}`}
-          className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
-          title="View cooking instructions"
+          className="shrink-0 p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition"
         >
-          <ChefHat size={16} />
+          <ChefHat size={18} />
         </Link>
       )}
     </div>
