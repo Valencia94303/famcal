@@ -59,6 +59,7 @@ const PUBLIC_READ_ROUTES = [
   "/api/habits",
   "/api/schedule",
   "/api/rewards",
+  "/api/settings", // Dashboard needs to read settings for photo mode
 ];
 
 // Static files and Next.js internals
