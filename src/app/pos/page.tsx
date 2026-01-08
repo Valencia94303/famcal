@@ -215,7 +215,7 @@ function POSContent() {
   if (!member) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
+    <div className="fixed inset-0 bg-gradient-to-br from-slate-900 to-slate-800 overflow-y-auto">
       {/* Success Animation Overlay */}
       {lastAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-in fade-in duration-200">

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Search, Star, Calendar, Utensils, Filter, ShoppingCart, Check, Store } from "lucide-react";
+import { Plus, Search, Star, Calendar, Utensils, Filter, ShoppingCart, Check, Store, ChefHat } from "lucide-react";
+import Link from "next/link";
 
 interface Recipe {
   id: string;
@@ -431,6 +432,13 @@ export function MealsSection() {
 
                 {/* Actions */}
                 <div className="mt-4 flex gap-2">
+                  <Link
+                    href={`/cook/${recipe.id}`}
+                    className="flex items-center justify-center gap-1 flex-1 px-3 py-1.5 text-sm bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition"
+                  >
+                    <ChefHat size={14} />
+                    Cook
+                  </Link>
                   <button
                     onClick={() => {
                       setRatingRecipe(recipe);
@@ -445,7 +453,7 @@ export function MealsSection() {
                       setEditingRecipe(recipe);
                       setShowRecipeModal(true);
                     }}
-                    className="flex-1 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+                    className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
                   >
                     Edit
                   </button>
@@ -940,25 +948,36 @@ function MealSlot({
   }
 
   return (
-    <button
-      onClick={() => setIsEditing(true)}
-      className={`w-full text-left p-2 rounded-lg border-2 border-dashed transition ${
-        meal
-          ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
-          : "bg-gray-50 border-gray-200 hover:bg-gray-100"
-      }`}
-    >
-      {meal ? (
-        <div className="flex items-center gap-2">
-          <span>{meal.recipe?.icon || "🍽️"}</span>
-          <span className="text-sm truncate">
-            {meal.recipe?.name || meal.customMeal}
-          </span>
-        </div>
-      ) : (
-        <span className="text-sm text-gray-400">+ Add meal</span>
+    <div className="flex gap-1">
+      <button
+        onClick={() => setIsEditing(true)}
+        className={`flex-1 text-left p-2 rounded-lg border-2 border-dashed transition ${
+          meal
+            ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
+            : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+        }`}
+      >
+        {meal ? (
+          <div className="flex items-center gap-2">
+            <span>{meal.recipe?.icon || "🍽️"}</span>
+            <span className="text-sm truncate">
+              {meal.recipe?.name || meal.customMeal}
+            </span>
+          </div>
+        ) : (
+          <span className="text-sm text-gray-400">+ Add meal</span>
+        )}
+      </button>
+      {meal?.recipe && (
+        <Link
+          href={`/cook/${meal.recipe.id}`}
+          className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
+          title="View cooking instructions"
+        >
+          <ChefHat size={16} />
+        </Link>
       )}
-    </button>
+    </div>
   );
 }
 
